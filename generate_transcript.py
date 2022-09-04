@@ -6,8 +6,8 @@ import json
 import retrieve_from_gmail
 from google.cloud import texttospeech
 
-openai.api_key = "your_api_key_here"
-newsletters = retrieve_from_gmail.main()[:3]
+openai.api_key = ""
+newsletters = retrieve_from_gmail.main()[:5]
 article_count = 0
 
 fulltext = "Good morning! Here is your daily briefing, curated from your newsletters. "
@@ -26,7 +26,8 @@ def summarize(text):
         temperature=0.7,
         max_tokens=700
     )
-    return reply['choices'][0]['text'][4:]
+    return reply['choices'][0]['text']
+
 
 def up_next(i):
     global fulltext
@@ -42,13 +43,15 @@ def up_next(i):
 def summarizing_segment(i):
     global fulltext
     fulltext += summarize(newsletters[i][2])
+    fulltext += '\n'
 
 
 for i in range(len(newsletters)):
+    up_next(i)
     summarizing_segment(i)
-    fulltext += "\n"
 
 fulltext += "That's everything for today; thanks for tuning into Newscast!"
+
 
 def text_to_speech(fulltext):
     # Instantiates a client
@@ -77,6 +80,7 @@ def text_to_speech(fulltext):
         # Write the response to the output file.
         out.write(response.audio_content)
 
+
 def export_json():
     dictionary = {
         "text": fulltext
@@ -85,6 +89,8 @@ def export_json():
     json_object = json.dumps(dictionary)
     with open("newscast/src/fulltext.json", "w") as outfile:
         outfile.write(json_object)
+
+
 print(fulltext)
 text_to_speech(fulltext)
 export_json()
