@@ -1,5 +1,6 @@
 from __future__ import print_function
 from datetime import date
+from datetime import timedelta
 from bs4 import BeautifulSoup
 import os.path
 import base64
@@ -12,6 +13,7 @@ from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+
 
 
 def main():
@@ -39,7 +41,8 @@ def main():
     try:
         # Call the Gmail API
         service = build('gmail', 'v1', credentials=creds)
-        query = '"listid" OR "newsletter" AND after:{}'.format(date.today().strftime("%Y/%m/%d"))
+        yesterday = date.today() - timedelta(days=1)
+        query = '"listid" OR "newsletter" AND after:{}'.format(yesterday.strftime("%Y/%m/%d"))
         newsletter_ids = service.users().messages().list(userId='me', q=query).execute().get('messages', [])
 
         # Create list of tuples for each newsletter.
@@ -67,15 +70,16 @@ def main():
             normalized_html_body = ' '.join(html_body.split())
             soup = BeautifulSoup(normalized_html_body, 'html.parser')
             full_text = soup.get_text()
+            full_text = full_text.replace(f"{chr(32)}{chr(32)}", '')
 
             # Add the 3-tuple to the list. [0] is sender, [1] is subject, [2] is full text.
             newsletter = (sender, subject, full_text)
             newsletters.append(newsletter)
-
-        print(newsletters)
+        return newsletters
 
     except HttpError as error:
         print('An error occurred: {error}')
+        return None
 
 
 if __name__ == '__main__':
