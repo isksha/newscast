@@ -1,0 +1,15 @@
+Index: token.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>{\"token\": \"ya29.a0AVA9y1sk-9-MPAk5s89kSoMQ2YukjT-WT-mHfN1PtO9dQUGMBNJB9OIUoIj0-hBuWCyCJJT4nfPCDFoa9Ds9RI9zpaAK202EcQrXgtNKBmUP6XnwZjH-REg4Xddk5mLJAMxxYuTq6RP7MSMJWtgpTGMROXB3aCgYKATASAQASFQE65dr89J2_CIvnKzUW-JgAbKcQXw0163\", \"refresh_token\": \"1//0dT_IJzL-A-UlCgYIARAAGA0SNwF-L9IrfDMP1sBGumLYd7Oq-r0svVJYRz7_miayo3dDGdhnP9aoA4Gj_texgYx-JFP8ETddsbA\", \"token_uri\": \"https://oauth2.googleapis.com/token\", \"client_id\": \"789197023372-52honmd0rr6fkj01o4qgsc9ol2dv34dl.apps.googleusercontent.com\", \"client_secret\": \"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\", \"scopes\": [\"https://www.googleapis.com/auth/gmail.readonly\"], \"expiry\": \"2022-09-04T00:47:11.855693Z\"}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/token.json b/token.json
+--- a/token.json	(revision 42b9f04d98d2a88b892ce4659975132194ffcea3)
++++ b/token.json	(date 1662255065865)
+@@ -1,1 +1,1 @@
+-{"token": "ya29.a0AVA9y1sk-9-MPAk5s89kSoMQ2YukjT-WT-mHfN1PtO9dQUGMBNJB9OIUoIj0-hBuWCyCJJT4nfPCDFoa9Ds9RI9zpaAK202EcQrXgtNKBmUP6XnwZjH-REg4Xddk5mLJAMxxYuTq6RP7MSMJWtgpTGMROXB3aCgYKATASAQASFQE65dr89J2_CIvnKzUW-JgAbKcQXw0163", "refresh_token": "1//0dT_IJzL-A-UlCgYIARAAGA0SNwF-L9IrfDMP1sBGumLYd7Oq-r0svVJYRz7_miayo3dDGdhnP9aoA4Gj_texgYx-JFP8ETddsbA", "token_uri": "https://oauth2.googleapis.com/token", "client_id": "789197023372-52honmd0rr6fkj01o4qgsc9ol2dv34dl.apps.googleusercontent.com", "client_secret": "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", "scopes": ["https://www.googleapis.com/auth/gmail.readonly"], "expiry": "2022-09-04T00:47:11.855693Z"}
+\ No newline at end of file
++{"token": "ya29.a0AVA9y1tbv3us93_gcNAP37txdiky97QeF5aPusmK3V_mFxAyA3LoB4ssZFrAVvJy2ZhuY5yoAZC9bbRac28i8q0MAppscQgrTelbU6Ay38vsRJeseRyyKqeMTnpCqJRGczNS4nwTjHuqvY_rpm_eudhMOMOVaCgYKATASAQASFQE65dr8kLKeAP3ItRLlwXjC5Fa3sQ0163", "refresh_token": "1//0d41LlcEMc3SICgYIARAAGA0SNwF-L9IrhGN0vb0A5jNaZ1fwZl-SszXQVjDVw9KfZpbu650sATZo5YMQ0xgR0H5D4hk_J8jBhm8", "token_uri": "https://oauth2.googleapis.com/token", "client_id": "789197023372-52honmd0rr6fkj01o4qgsc9ol2dv34dl.apps.googleusercontent.com", "client_secret": "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", "scopes": ["https://www.googleapis.com/auth/gmail.readonly"], "expiry": "2022-09-04T02:31:04.863590Z"}
+\ No newline at end of file
