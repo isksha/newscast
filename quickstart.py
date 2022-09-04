@@ -4,9 +4,7 @@ from bs4 import BeautifulSoup
 
 import os.path
 import base64
-import email
 import unicodedata
-import re
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -16,7 +14,6 @@ from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-
 
 def main():
     """Shows basic usage of the Gmail API.
@@ -56,14 +53,9 @@ def main():
             soup = BeautifulSoup(normalized_html_body, "html.parser")
             print(soup.get_text())
 
-
     except HttpError as error:
         # TODO(developer) - Handle errors from gmail API.
         print('An error occurred: {error}')
-
-
-def 
-
 
 if __name__ == '__main__':
     main()
