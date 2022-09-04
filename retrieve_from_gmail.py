@@ -41,8 +41,7 @@ def main():
     try:
         # Call the Gmail API
         service = build('gmail', 'v1', credentials=creds)
-        yesterday = date.today() - timedelta(days=1)
-        query = '"listid" OR "newsletter" AND after:{}'.format(yesterday.strftime("%Y/%m/%d"))
+        query = '"listid" OR "newsletter" AND after:{}'.format(date.today().strftime("%Y/%m/%d"))
         newsletter_ids = service.users().messages().list(userId='me', q=query).execute().get('messages', [])
 
         # Create list of tuples for each newsletter.

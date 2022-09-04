@@ -6,8 +6,8 @@ import json
 import retrieve_from_gmail
 from google.cloud import texttospeech
 
-openai.api_key = "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"
-newsletters = retrieve_from_gmail.main()
+openai.api_key = "your_api_key_here"
+newsletters = retrieve_from_gmail.main()[:3]
 article_count = 0
 
 fulltext = "Good morning! Here is your daily briefing, curated from your newsletters. "
@@ -23,10 +23,20 @@ def summarize(text):
     reply = openai.Completion.create(
         model="text-davinci-002",
         prompt=generate_summarize_prompt(text),
-        temperature=0.6,
+        temperature=0.7,
         max_tokens=700
     )
-    return reply['choices'][0]['text'][2:]
+    return reply['choices'][0]['text'][4:]
+
+def up_next(i):
+    global fulltext
+    if i == 0:
+        segment = "Here's your first update of the day:"
+    elif i == len(newsletters) - 1:
+        segment = "And here is the final newsletter for the day:"
+    else:
+        segment = "Next up:"
+    fulltext += segment + '\n'
 
 
 def summarizing_segment(i):
@@ -75,6 +85,6 @@ def export_json():
     json_object = json.dumps(dictionary)
     with open("newscast/src/fulltext.json", "w") as outfile:
         outfile.write(json_object)
-
+print(fulltext)
 text_to_speech(fulltext)
 export_json()
