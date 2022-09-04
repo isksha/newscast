@@ -55,13 +55,15 @@ def main():
             subject = ''
             for header in payload['headers']:
                 if header['name'] == 'From':
-                    sender = header['value'].rsplit('', 1)[0]
+                    sender = header['value'].rsplit(' ', 1)[0]
                 elif header['name'] == 'Subject':
                     subject = header['value']
 
             # Retrieve body text of newsletter
             data = payload['parts'][1]['body']['data']
-            html_body = base64.urlsafe_b64decode(data).decode('utf-8', errors='ignore')
+            html_body = base64.urlsafe_b64decode(data).decode('utf-8')
+            html_body = html_body.replace('\u200c', '')
+            html_body = html_body.replace('\xa0', ' ')
             normalized_html_body = ' '.join(html_body.split())
             soup = BeautifulSoup(normalized_html_body, 'html.parser')
             full_text = soup.get_text()
@@ -69,6 +71,8 @@ def main():
             # Add the 3-tuple to the list. [0] is sender, [1] is subject, [2] is full text.
             newsletter = (sender, subject, full_text)
             newsletters.append(newsletter)
+
+        print(newsletters)
 
     except HttpError as error:
         print('An error occurred: {error}')
