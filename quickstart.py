@@ -5,7 +5,8 @@ from bs4 import BeautifulSoup
 import os.path
 import base64
 import email
-from email import parser
+import unicodedata
+import re
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -44,45 +45,16 @@ def main():
         service = build('gmail', 'v1', credentials=creds)
         query = '"listid" OR "newsletter" AND after:{}'.format(date.today().strftime("%Y/%m/%d"))
         newsletter_ids = service.users().messages().list(userId='me', q=query).execute().get('messages', [])
-        # for newsletter in newsletter_ids:
-            # txt = service.users().messages().get(userId='me', id=newsletter['id']).execute()
-            # try:
-            #     payload = txt['payload']
-            #     parts = payload.get('parts')[0]
-            #     data = parts['body']['data']
-            #     data = data.replace("-","+").replace("_","/")
-            #     decoded_data = base64.b64decode(data)
-            #     soup = BeautifulSoup(decoded_data, "html.parser")
-                # body = soup.body()
-                # text = []
-                # for para in body.find_all("p"):
-                #     text.append(para)
-                # print(text)                # print("Subject: ", subject)
-                # print("From: ", sender)
-                # print("Message: ", body)
-                # print('\n')
-            # except:
-            #     print("here")
-            #     pass
 
-
-        # newsletter_ids = [elt['id'] for elt in newsletter_ids]
-        newsletter_raw = []
-
+        print(len(newsletter_ids))
         for elt in newsletter_ids:
-            newsletter = service.users().messages().get(userId='me', id=elt['id'], format='raw').execute()
-            newsletter = base64.urlsafe_b64decode(newsletter['raw'].encode('ASCII'))
-            newsletter_raw.append(str(newsletter))
-
-        newsletter_str = []
-        for elt in newsletter_raw:
-            msg = email.message_from_string(elt)
-            # body = ""
-            # for part in msg.walk():
-            #     part = part.get_payload(decode=True)
-            #     newsletter_str.append(part)
-            newsletter_str.append(msg.get_payload())
-        print(newsletter_str[0])
+            newsletter_full = service.users().messages().get(userId='me', id=elt['id'], format='full').execute()
+            data = newsletter_full['payload']['parts'][1]['body']['data']
+            decoded_data = base64.urlsafe_b64decode(data)
+            html_body = (bytes(decoded_data)).decode('utf-8', errors='ignore')
+            normalized_html_body = unicodedata.normalize('NFKD', html_body)
+            soup = BeautifulSoup(normalized_html_body, "html.parser")
+            print(soup.get_text())
 
 
     except HttpError as error:
