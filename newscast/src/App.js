@@ -7,8 +7,7 @@ import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-
-const audio_src = 'output.mp3';
+import sound from './output.mp3'
 
 const transcript = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi pulvinar placerat magna sit amet posuere. Curabitur interdum, nibh id hendrerit dictum, risus eros pellentesque nibh, in fermentum nunc libero ut justo. In hac habitasse platea dictumst. Nunc id lacus ullamcorper, blandit libero nec, dignissim turpis. Nunc placerat nisi quis quam maximus varius. Duis ullamcorper eu ex ac congue. Nam eu scelerisque tellus, vitae vehicula turpis. Sed vitae varius magna, in convallis ligula. Mauris rhoncus massa lorem, vel tempus quam luctus vitae.\n
             
@@ -25,7 +24,8 @@ export default function App() {
           <Box sx={{ width: '99%', position: 'fixed', top: 100}}>
             <AudioPlayer
                 preload="auto"
-                src={audio_src}
+                src={sound}
+                muted="true"
             />
           </Box>
           <Box sx={{ width: '99%', position: 'fixed', top: 230, mb: 2 }}>
