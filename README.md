@@ -1,3 +1,14 @@
+## How to use
+First, you need an OpenAI account for a unique API key to plug into the `openai.api_key` field in the `generate_transcript.py` file.
+You'll also need to authenticate the text-to-speech API with a .json key from Google Cloud.
+Then, run the following code in the terminal:
+```
+python3 generate_transcript.py
+cd newscast
+npm start
+```
+You'll be able to use Newscast in your browser at `http://localhost:3000/`. Just log in with your Gmail account and you're good to go!
+
 ## Inspiration
 Newsletters are an underpreciated medium and the experience of accessing them each morning could be made much more convenient if they hadn't to be clicked through one by one. Furthermore, with all the craze around AI, why not have an artificial companion to deliver the morning updates to us?
 ## What it does
