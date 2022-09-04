@@ -5,12 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="321fdbe3-4f29-4f62-a016-7d80c338f774" name="Changes" comment="deleted node.js openai">
-      <change afterPath="$PROJECT_DIR$/.env" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/generate_transcript.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/newscast/src/output.mp3" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/newscast/public/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/newscast/public/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/retrieve_from_gmail.py" beforeDir="false" afterPath="$PROJECT_DIR$/retrieve_from_gmail.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/generate_transcript.py" beforeDir="false" afterPath="$PROJECT_DIR$/generate_transcript.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newscast/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/newscast/src/App.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/token.json" beforeDir="false" afterPath="$PROJECT_DIR$/token.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -64,6 +62,7 @@
       <recent name="$PROJECT_DIR$/openai_scripts" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/newscast/src" />
       <recent name="$PROJECT_DIR$/openai" />
     </key>
   </component>
@@ -132,7 +131,7 @@
       <workItem from="1662251323970" duration="109000" />
       <workItem from="1662251679178" duration="260000" />
       <workItem from="1662252329707" duration="12651000" />
-      <workItem from="1662266785926" duration="7076000" />
+      <workItem from="1662266785926" duration="12262000" />
     </task>
     <task id="LOCAL-00001" summary="added python files">
       <created>1662228441475</created>
@@ -218,7 +217,14 @@
       <option name="project" value="LOCAL" />
       <updated>1662262359012</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="deleted node.js openai">
+      <created>1662274170043</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1662274170043</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
