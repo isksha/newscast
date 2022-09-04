@@ -28,7 +28,7 @@ export default function App() {
                 muted="true"
             />
           </Box>
-          <Box sx={{ width: '99%', position: 'fixed', top: 230, mb: 2 }}>
+          <Box sx={{ width: '99%', position: 'fixed', left: 5, top: 230, mb: 2 }}>
             <Accordion>
               <AccordionSummary
                   expandIcon={<ExpandMoreIcon />}
