@@ -1,10 +1,8 @@
 from __future__ import print_function
 from datetime import date
 from bs4 import BeautifulSoup
-
 import os.path
 import base64
-import unicodedata
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -14,6 +12,7 @@ from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+
 
 def main():
     """Shows basic usage of the Gmail API.
@@ -43,19 +42,37 @@ def main():
         query = '"listid" OR "newsletter" AND after:{}'.format(date.today().strftime("%Y/%m/%d"))
         newsletter_ids = service.users().messages().list(userId='me', q=query).execute().get('messages', [])
 
-        print(len(newsletter_ids))
-        for elt in newsletter_ids:
-            newsletter_full = service.users().messages().get(userId='me', id=elt['id'], format='full').execute()
-            data = newsletter_full['payload']['parts'][1]['body']['data']
-            decoded_data = base64.urlsafe_b64decode(data)
-            html_body = (bytes(decoded_data)).decode('utf-8', errors='ignore')
-            normalized_html_body = unicodedata.normalize('NFKD', html_body)
-            soup = BeautifulSoup(normalized_html_body, "html.parser")
-            print(soup.get_text())
+        # Create list of tuples for each newsletter.
+        newsletters = []
+
+        # Add the 3-tuple to the list. [0] is sender, [1] is subject, [2] is full text.
+        for my_id in newsletter_ids:
+            newsletter_full = service.users().messages().get(userId='me', id=my_id['id'], format='full').execute()
+            payload = newsletter_full['payload']
+
+            # Retrieve sender and subject
+            sender = ''
+            subject = ''
+            for header in payload['headers']:
+                if header['name'] == 'From':
+                    sender = header['value'].rsplit('', 1)[0]
+                elif header['name'] == 'Subject':
+                    subject = header['value']
+
+            # Retrieve body text of newsletter
+            data = payload['parts'][1]['body']['data']
+            html_body = base64.urlsafe_b64decode(data).decode('utf-8', errors='ignore')
+            normalized_html_body = ' '.join(html_body.split())
+            soup = BeautifulSoup(normalized_html_body, 'html.parser')
+            full_text = soup.get_text()
+
+            # Add the 3-tuple to the list. [0] is sender, [1] is subject, [2] is full text.
+            newsletter = (sender, subject, full_text)
+            newsletters.append(newsletter)
 
     except HttpError as error:
-        # TODO(developer) - Handle errors from gmail API.
         print('An error occurred: {error}')
+
 
 if __name__ == '__main__':
     main()
