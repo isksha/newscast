@@ -21,7 +21,9 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "mongodb": "^5.5.0"
+    "mongodb": "^5.5.0",
+    "openai": "^3.2.1",
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "eslint": "^8.41.0",

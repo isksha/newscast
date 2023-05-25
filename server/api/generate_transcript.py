@@ -4,9 +4,12 @@ import openai
 import json
 
 import retrieve_from_gmail
-from google.cloud import texttospeech
+# from google.cloud import texttospeech
+from dotenv import dotenv_values
 
-openai.api_key = ""
+config = dotenv_values("../.env")
+openai.api_key = config['OPENAI_API_KEY']
+
 newsletters = retrieve_from_gmail.main()[:5]
 article_count = 0
 
@@ -93,5 +96,5 @@ def export_json():
 
 
 print(fulltext)
-text_to_speech(fulltext)
-export_json()
+# text_to_speech(fulltext)
+# export_json()
