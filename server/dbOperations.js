@@ -1,9 +1,8 @@
 // import the mongodb driver
-const { MongoClient, ObjectId } = require("mongodb");
+const { MongoClient, ObjectId } = require('mongodb');
 
 // the mongodb server URL
-const dbURL =
-  "PLACEHOLDER";
+const dbURL = process.env.MONGO_URI;
 
 let MongoConnection;
 // connection to the db
@@ -12,13 +11,10 @@ const connect = async () => {
     MongoConnection = await MongoClient.connect(dbURL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-    }); 
-    console.log(
-      `connected to db: ${MongoConnection.db("placeholder").databaseName}`
-    );
+    });
     return MongoConnection;
   } catch (err) {
-    console.log(err.message);
+    console.log('Error while connecting to MongoDB');
   }
 };
 /**
@@ -41,10 +37,22 @@ const closeMongoDBConnection = async () => {
   await MongoConnection.close();
 };
 
+const getUserNewscasts = async () => {
+  try {
+    const db = await getDB(process.env.MONGO_DB_NAME);
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).find({}).toArray();
+    await closeMongoDBConnection();
+    console.log(result);
+    return result;
+  } catch (err) {
+    console.log('Could not get user transcripts');
+  }
+};
 
 // export the functions
 module.exports = {
   closeMongoDBConnection,
   getDB,
-  connect
+  connect,
+  getUserNewscasts,
 };

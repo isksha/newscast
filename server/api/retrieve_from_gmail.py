@@ -15,7 +15,6 @@ from googleapiclient.errors import HttpError
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
 
-
 def main():
     """Shows basic usage of the Gmail API.
     Lists the user's Gmail labels.
@@ -41,15 +40,18 @@ def main():
     try:
         # Call the Gmail API
         service = build('gmail', 'v1', credentials=creds)
-        query = '"listid" OR "newsletter" AND after:{}'.format(date.today().strftime("%Y/%m/%d"))
-        newsletter_ids = service.users().messages().list(userId='me', q=query).execute().get('messages', [])
+        query = '"listid" OR "newsletter" AND after:{}'.format(
+            date.today().strftime("%Y/%m/%d"))
+        newsletter_ids = service.users().messages().list(
+            userId='me', q=query).execute().get('messages', [])
 
         # Create list of tuples for each newsletter.
         newsletters = []
 
         # Add the 3-tuple to the list. [0] is sender, [1] is subject, [2] is full text.
         for my_id in newsletter_ids:
-            newsletter_full = service.users().messages().get(userId='me', id=my_id['id'], format='full').execute()
+            newsletter_full = service.users().messages().get(
+                userId='me', id=my_id['id'], format='full').execute()
             payload = newsletter_full['payload']
 
             # Retrieve sender and subject
