@@ -130,5 +130,4 @@ dist
 .pnp.*
 
 # creds
-.credentials.json
-.token.json
+api

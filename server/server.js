@@ -16,7 +16,7 @@ const dbLib = require('./dbOperations');
 // root endpoint route
 webapp.get('/', (req, resp) => {
   dbLib.connect();
-  dbLib.getUserNewscasts();
+
   resp.json({ message: "What's up" });
 });
 

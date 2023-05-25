@@ -37,7 +37,7 @@ const closeMongoDBConnection = async () => {
   await MongoConnection.close();
 };
 
-const getUserNewscasts = async () => {
+const getAllNewscasts = async () => {
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
     const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).find({}).toArray();
