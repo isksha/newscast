@@ -1,5 +1,5 @@
 /**
- * Express webserver / controller
+ * Express webserver / controllers
  */
 
 const express = require('express');
