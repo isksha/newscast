@@ -16,7 +16,7 @@ const dbLib = require('./dbOperations');
 // root endpoint route
 webapp.get('/', (req, resp) => {
   dbLib.connect();
-
+  console.log(process.env.GOOGLE_CLOUD_TOKEN);
   resp.json({ message: "What's up" });
 });
 
