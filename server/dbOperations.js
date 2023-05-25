@@ -54,5 +54,5 @@ module.exports = {
   closeMongoDBConnection,
   getDB,
   connect,
-  getUserNewscasts,
+  getAllNewscasts,
 };

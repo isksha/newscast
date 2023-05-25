@@ -4,6 +4,7 @@
 
 const express = require('express');
 const cors = require('cors');
+const transcriptExtracter = require('./api/extractTranscript');
 
 require('dotenv').config();
 
@@ -14,10 +15,12 @@ webapp.use(express.urlencoded({ extended: true }));
 const dbLib = require('./dbOperations');
 
 // root endpoint route
-webapp.get('/', (req, resp) => {
+webapp.get('/', async (req, res) => {
   dbLib.connect();
-  console.log(process.env.GOOGLE_CLOUD_TOKEN);
-  resp.json({ message: "What's up" });
+  const result = await transcriptExtracter.extractTodaysTranscript('Hello', 'World');
+  console.log(result);
+  // dbLib.getAllNewscasts();
+  res.json({ message: "What's up" });
 });
 
 // export the webapp
