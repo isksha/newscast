@@ -1,0 +1,36 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Backend for Newscast",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/isksha/newscast.git"
+  },
+  "author": "Iskander Shangareev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/isksha/newscast/issues"
+  },
+  "homepage": "https://github.com/isksha/newscast#readme",
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mongodb": "^5.5.0",
+    "openai": "^3.2.1",
+    "util": "^0.12.5"
+  },
+  "devDependencies": {
+    "eslint": "^8.41.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0"
+  }
+}
