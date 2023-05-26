@@ -37,22 +37,143 @@ const closeMongoDBConnection = async () => {
   await MongoConnection.close();
 };
 
-const getAllNewscasts = async () => {
+/** CRUD for newscasts */
+
+const addNewscast = async (userId, topic, transcript, date) => {
+  // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
-    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).find({}).toArray();
-    await closeMongoDBConnection();
-    console.log(result);
+    // create the new transcript
+    const newTranscript = {
+      userId,
+      topic,
+      transcript,
+      date,
+    };
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).insertOne(newTranscript);
+    // print the results
+    console.log(`add transcript: ${JSON.stringify(result)}`);
     return result;
   } catch (err) {
-    console.log('Could not get user transcripts');
+    console.log('Could not add newscast');
   }
 };
+
+// date given as Date() object
+const getNewscast = async (userId, topic, date) => {
+  // get the db
+  try {
+    const db = await getDB(process.env.MONGO_DB_NAME);
+
+    // specify the range to be one day
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).findOne({
+      userId,
+      topic,
+      date: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    });
+
+    // print the results
+    console.log(`get transcript: ${JSON.stringify(result)}`);
+    return result;
+  } catch (err) {
+    console.log('Could not get newscast');
+  }
+};
+
+const updateNewscast = async (userId, topic, date, newTranscript) => {
+  // get the db
+  try {
+    const db = await getDB(process.env.MONGO_DB_NAME);
+
+    // specify the range to be one day
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).updateOne({
+      userId,
+      topic,
+      date: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    }, {
+      $set: {
+        newTranscript,
+      },
+    });
+
+    console.log(`update : ${JSON.stringify(result)}`);
+    return result;
+  } catch (err) {
+    console.log('Failed to update newscast');
+  }
+};
+
+const deleteNewscast = async (userId, topic, date) => {
+  // get the db
+  try {
+    const db = await getDB(process.env.MONGO_DB_NAME);
+
+    // specify the range to be one day
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).deleteOne({
+      userId,
+      topic,
+      date: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    });
+
+    // print the results
+    console.log(`deleted transcript: ${JSON.stringify(result)}`);
+    return result;
+  } catch (err) {
+    console.log('Could not delete newscast');
+  }
+};
+
+const getNewscastsByUserAndTopic = async (userId, topic) => {
+  // get the db
+  try {
+    // get the db
+    const db = await getDB(process.env.MONGO_DB_NAME);
+
+    const toFind = topic === null ? { userId } : { userId, topic };
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).find(toFind).toArray();
+
+    // print the results
+    console.log(`get listings: ${JSON.stringify(result)}`);
+    return result;
+  } catch (err) {
+    console.log('Could not get newscasts');
+  }
+};
+
+// TODO: delete by user (in case of account termination)
 
 // export the functions
 module.exports = {
   closeMongoDBConnection,
   getDB,
   connect,
-  getAllNewscasts,
+  addNewscast,
+  getNewscast,
+  updateNewscast,
+  deleteNewscast,
+  getNewscastsByUserAndTopic,
 };
