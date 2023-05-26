@@ -192,7 +192,7 @@ const updateNewscast = async (userId, topic, date, newTranscript) => {
       },
     }, {
       $set: {
-        newTranscript,
+        transcript: newTranscript,
       },
     });
 
