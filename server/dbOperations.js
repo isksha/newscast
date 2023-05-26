@@ -4,7 +4,7 @@ const { MongoClient } = require('mongodb');
 // the mongodb server URL
 const dbURL = process.env.MONGO_URI;
 
-/--------------------- Connection helpers ---------------------/;
+/* --------------------- Connection helpers ---------------------*/
 
 let MongoConnection;
 // connection to the db
@@ -40,12 +40,13 @@ const closeMongoDBConnection = async () => {
   await MongoConnection.close();
 };
 
-/--------------------- CRUD for users ---------------------/;
+/* --------------------- CRUD for users ---------------------*/
 
 const addUser = async (userId, firstName, lastName, password) => {
   // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
+    console.log(userId);
     // create the new user
     const newUser = {
       _id: userId,
@@ -85,9 +86,9 @@ const updateUser = async (userId, firstName, lastName, password) => {
 
     // update only fields that changed
     const toUpdate = {};
-    if (firstName !== null) toUpdate.firstName = firstName;
-    if (lastName !== null) toUpdate.lastName = lastName;
-    if (password !== null) toUpdate.password = password;
+    if (firstName !== undefined) toUpdate.firstName = firstName;
+    if (lastName !== undefined) toUpdate.lastName = lastName;
+    if (password !== undefined) toUpdate.password = password;
 
     console.log(toUpdate);
 
@@ -120,7 +121,7 @@ const deleteUser = async (userId) => {
   }
 };
 
-/--------------------- CRUD for transcripts ---------------------/;
+/* --------------------- CRUD for transcripts ---------------------*/
 
 const addNewscast = async (userId, topic, transcript, date) => {
   // get the db
@@ -191,7 +192,7 @@ const updateNewscast = async (userId, topic, date, newTranscript) => {
       },
     }, {
       $set: {
-        newTranscript,
+        transcript: newTranscript,
       },
     });
 
