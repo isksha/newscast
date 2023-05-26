@@ -17,9 +17,9 @@ const dbLib = require('./dbOperations');
 // root endpoint route
 webapp.get('/', async (req, res) => {
   dbLib.connect();
-  const newsletterStr = await transcriptExtracter.getTranscript('Hello', 'World');
-  console.log(newsletterStr);
-  // dbLib.getAllNewscasts();
+  // const newsletterStr = await transcriptExtracter.getTranscript('Hello', 'World');
+  // dbLib.addNewscast('iskander', 'general', newsletterStr);
+  const resp = await dbLib.getNewscast('iskander', 'general', new Date('2023-05-26'));
   res.json({ message: "What's up" });
 });
 

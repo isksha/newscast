@@ -37,15 +37,55 @@ const closeMongoDBConnection = async () => {
   await MongoConnection.close();
 };
 
-const getAllNewscasts = async () => {
+/** CRUD for newscasts */
+
+const addNewscast = async (userId, topic, transcript) => {
+  // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
-    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).find({}).toArray();
-    await closeMongoDBConnection();
-    console.log(result);
+    // create the new listing
+    const newTranscript = {
+      userId,
+      topic,
+      transcript,
+      date: new Date(),
+    };
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).insertOne(newTranscript);
+    // print the results
+    console.log(`add listing: ${JSON.stringify(result)}`);
     return result;
   } catch (err) {
-    console.log('Could not get user transcripts');
+    console.log('Could not add newscast');
+  }
+};
+
+// date given as Date() object
+const getNewscast = async (userId, topic, date) => {
+  // get the db
+  try {
+    // get the db
+    const db = await getDB(process.env.MONGO_DB_NAME);
+
+    // specify the range to be one day
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).findOne({
+      userId,
+      topic,
+      date: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    });
+
+    // print the results
+    console.log(`get listing: ${JSON.stringify(result)}`);
+    return result;
+  } catch (err) {
+    console.log('Could not add newscast');
   }
 };
 
@@ -54,5 +94,6 @@ module.exports = {
   closeMongoDBConnection,
   getDB,
   connect,
-  getAllNewscasts,
+  addNewscast,
+  getNewscast,
 };
