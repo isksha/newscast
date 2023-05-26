@@ -1,8 +1,10 @@
 // import the mongodb driver
-const { MongoClient, ObjectId } = require('mongodb');
+const { MongoClient } = require('mongodb');
 
 // the mongodb server URL
 const dbURL = process.env.MONGO_URI;
+
+/--------------------- Connection helpers ---------------------/;
 
 let MongoConnection;
 // connection to the db
@@ -17,6 +19,7 @@ const connect = async () => {
     console.log('Error while connecting to MongoDB');
   }
 };
+
 /**
  *
  * @returns the database attached to this MongoDB connection
@@ -37,7 +40,87 @@ const closeMongoDBConnection = async () => {
   await MongoConnection.close();
 };
 
-/** CRUD for newscasts */
+/--------------------- CRUD for users ---------------------/;
+
+const addUser = async (userId, firstName, lastName, password) => {
+  // get the db
+  try {
+    const db = await getDB(process.env.MONGO_DB_NAME);
+    // create the new user
+    const newUser = {
+      _id: userId,
+      userId,
+      firstName,
+      lastName,
+      password,
+    };
+
+    const result = await db.collection(process.env.MONGO_USERS_COLLECTION).insertOne(newUser);
+    // print the results
+    console.log(`add user: ${JSON.stringify(result)}`);
+    return result;
+  } catch (err) {
+    console.log('Could not add user');
+  }
+};
+
+const getUser = async (userId) => {
+  // get the db
+  try {
+    const db = await getDB(process.env.MONGO_DB_NAME);
+
+    const result = await db.collection(process.env.MONGO_USERS_COLLECTION).findOne({ _id: userId });
+    // print the results
+    console.log(`find user: ${JSON.stringify(result)}`);
+    return result;
+  } catch (err) {
+    console.log('Could not find user');
+  }
+};
+
+const updateUser = async (userId, firstName, lastName, password) => {
+  // get the db
+  try {
+    const db = await getDB(process.env.MONGO_DB_NAME);
+
+    // update only fields that changed
+    const toUpdate = {};
+    if (firstName !== null) toUpdate.firstName = firstName;
+    if (lastName !== null) toUpdate.lastName = lastName;
+    if (password !== null) toUpdate.password = password;
+
+    console.log(toUpdate);
+
+    const result = await db.collection(process.env.MONGO_USERS_COLLECTION).updateOne({
+      _id: userId,
+    }, {
+      $set: toUpdate,
+    });
+
+    // print the results
+    console.log(`update user: ${JSON.stringify(result)}`);
+    return result;
+  } catch (err) {
+    console.log(`couldn't update user: ${err}`);
+  }
+};
+
+// TODO: delete all transcripts of that user
+const deleteUser = async (userId) => {
+  // get the db
+  try {
+    const db = await getDB(process.env.MONGO_DB_NAME);
+
+    const result = await db.collection(process.env.MONGO_USERS_COLLECTION).deleteOne({ _id: userId });
+    // print the results
+    console.log(`delete user: ${JSON.stringify(result)}`);
+    return result;
+  } catch (err) {
+    console.log('Could not find user');
+  }
+};
+
+/--------------------- CRUD for transcripts ---------------------/;
 
 const addNewscast = async (userId, topic, transcript, date) => {
   // get the db
@@ -171,6 +254,10 @@ module.exports = {
   closeMongoDBConnection,
   getDB,
   connect,
+  addUser,
+  getUser,
+  updateUser,
+  deleteUser,
   addNewscast,
   getNewscast,
   updateNewscast,

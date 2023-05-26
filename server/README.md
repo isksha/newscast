@@ -1,7 +1,6 @@
 # misc TO-DOs 
-* replace placeholders for username and date
+* delete deleted user's transcripts
 
 # general direction
-* upload transcripts to mongo
-* assign transcripts to users
+* devise express endpoints
 * reimplement text-to-speech
