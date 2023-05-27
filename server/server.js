@@ -5,6 +5,7 @@
 const express = require('express');
 const cors = require('cors');
 const SHA3 = require('crypto-js/sha3');
+const say = require('say');
 const transcriptExtracter = require('./api/extractTranscript');
 
 require('dotenv').config();
@@ -71,6 +72,11 @@ webapp.put('/users', async (req, res) => {
 webapp.get('/newscasts/:userId/:topic/:date', async (req, res) => {
   // curl -i -X GET http://localhost:8080/newscasts/iskander/general/2023-05-26
   const ret = await dbLib.getNewscast(req.params.userId, req.params.topic, new Date(req.params.date));
+  say.speak(ret?.transcript, 'Alex', 1.0, (err) => {
+    if (err) {
+      console.log("Couldn't read transcript");
+    }
+  });
   res.json(ret);
 });
 
