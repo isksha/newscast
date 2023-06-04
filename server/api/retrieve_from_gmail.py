@@ -4,6 +4,8 @@ from datetime import timedelta
 from bs4 import BeautifulSoup
 import os.path
 import base64
+import os
+import sys
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -18,7 +20,13 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 def main():
     """Shows basic usage of the Gmail API.
     Lists the user's Gmail labels.
-    """
+    # """
+
+    # suppress output from gmail API
+    org_stdout = sys.stdout
+    f = open(os.devnull, 'w')
+    sys.stdout = f
+
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -77,10 +85,12 @@ def main():
             # Add the 3-tuple to the list. [0] is sender, [1] is subject, [2] is full text.
             newsletter = (sender, subject, full_text)
             newsletters.append(newsletter)
+        sys.stdout = org_stdout
         return newsletters
 
     except HttpError as error:
         print('An error occurred: {error}')
+        sys.stdout = org_stdout
         return None
 
 

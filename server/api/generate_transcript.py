@@ -49,11 +49,13 @@ def summarizing_segment(i):
     fulltext += '\n'
 
 
-for i in range(len(newsletters)):
-    up_next(i)
-    summarizing_segment(i)
-
-fulltext += "That's everything for today; thanks for tuning into Newscast!"
+if not len(newsletters):
+    fulltext = "There are no newsletters in your inbox today. Come back tomorrow for a more exciting Newscast!"
+else:
+    for i in range(len(newsletters)):
+        up_next(i)
+        summarizing_segment(i)
+    fulltext += "That's everything for today; thanks for tuning into Newscast!"
 
 
 def text_to_speech(fulltext):

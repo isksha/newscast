@@ -5,6 +5,7 @@
 const express = require('express');
 const cors = require('cors');
 const SHA3 = require('crypto-js/sha3');
+const say = require('say');
 const transcriptExtracter = require('./api/extractTranscript');
 
 require('dotenv').config();
@@ -18,8 +19,8 @@ const dbLib = require('./dbOperations');
 // root endpoint route
 webapp.get('/', async (req, res) => {
   dbLib.connect();
-  // const newsletterStr = await transcriptExtracter.getTranscript('Hello', 'World');
-  // dbLib.addNewscast('iskander', 'general', newsletterStr, new Date()));
+  const newsletterStr = await transcriptExtracter.getTranscript('Hello', 'World');
+  dbLib.addNewscast('iskander', 'general', newsletterStr, new Date());
   // const resp = await dbLib.getNewscast('iskander', 'general', new Date('2023-05-26'));
   // const resp = await dbLib.deleteNewscast('iskander', 'sports', new Date('2023-05-26'));
   // const resp = await dbLib.getNewscastsByUserAndTopic('iskander', 'sports');
@@ -71,6 +72,11 @@ webapp.put('/users', async (req, res) => {
 webapp.get('/newscasts/:userId/:topic/:date', async (req, res) => {
   // curl -i -X GET http://localhost:8080/newscasts/iskander/general/2023-05-26
   const ret = await dbLib.getNewscast(req.params.userId, req.params.topic, new Date(req.params.date));
+  // say.speak(ret?.transcript, 'Alex', 1.0, (err) => {
+  //   if (err) {
+  //     console.log("Couldn't read transcript");
+  //   }
+  // });
   res.json(ret);
 });
 
@@ -88,9 +94,13 @@ webapp.delete('/newscasts/:userId/:topic/:date', async (req, res) => {
   res.json(ret);
 });
 
-// add new transcript
+// add new transcript (if doesn't exist yet)
 webapp.post('/newscasts', async (req, res) => {
   // curl -i -X POST -d 'userId=aimee&topic=general&transcript=wazzap&date=2023-04-23' http://localhost:8080/newscasts
+  const exists = await dbLib.getNewscast(req.body.userId, req.body.topic, new Date(req.body.date));
+  if (exists) {
+    return res.json({ message: 'Transcript already exists' });
+  }
   const ret = await dbLib.addNewscast(req.body.userId, req.body.topic, req.body.transcript, new Date(req.body.date));
   res.json(ret);
 });
