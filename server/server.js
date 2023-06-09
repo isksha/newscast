@@ -8,6 +8,8 @@ const SHA3 = require('crypto-js/sha3');
 // const say = require('say');
 const transcriptExtracter = require('./api/extractTranscript');
 const imageGenerator = require('./api/generateImage');
+const dbLib = require('./db/mongoOperations');
+const gridfsLib = require('./db/gridfsOperations');
 
 require('dotenv').config();
 
@@ -15,7 +17,6 @@ const webapp = express();
 webapp.use(cors());
 
 webapp.use(express.urlencoded({ extended: true }));
-const dbLib = require('./dbOperations');
 
 // root endpoint route
 webapp.get('/', async (req, res) => {
