@@ -250,12 +250,8 @@ const getNewscastsByUserAndTopic = async (userId, topic) => {
   }
 };
 
-// TODO: delete by user (in case of account termination)
-
 // export the functions
 module.exports = {
-  closeMongoDBConnection,
-  getDB,
   connect,
   addUser,
   getUser,
