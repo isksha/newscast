@@ -86,13 +86,13 @@ const getFile = async (bucketName, fileId) => {
     const db = await getDB(process.env.MONGO_DB_NAME);
     const bucket = new GridFSBucket(db, { bucketName });
     const mkdir = util.promisify(fs.mkdir);
-    await mkdir('../artifacts', { recursive: true });
+    await mkdir('artifacts', { recursive: true });
 
     const _id = new ObjectId(fileId);
     const file = await db.collection(`${bucketName}.files`).findOne({ _id });
 
     bucket.openDownloadStream(_id)
-      .pipe(fs.createWriteStream(`../artifacts/${file.filename}`), { flags: 'w' });
+      .pipe(fs.createWriteStream(`artifacts/${file.filename}`), { flags: 'w' });
     console.log('File downloaded successfully');
   } catch (err) {
     console.log('Could not find file');
