@@ -1,5 +1,6 @@
 // import the mongodb driver
 const { MongoClient } = require('mongodb');
+require('dotenv').config();
 
 // the mongodb server URL
 const dbURL = process.env.MONGO_URI;
@@ -9,6 +10,7 @@ const dbURL = process.env.MONGO_URI;
 let MongoConnection;
 // connection to the db
 const connect = async () => {
+  console.log(dbURL);
   try {
     MongoConnection = await MongoClient.connect(dbURL, {
       useNewUrlParser: true,
@@ -16,7 +18,7 @@ const connect = async () => {
     });
     return MongoConnection;
   } catch (err) {
-    console.log('Error while connecting to MongoDB');
+    console.log('Error while connecting to MongoDBZ');
   }
 };
 
@@ -248,12 +250,8 @@ const getNewscastsByUserAndTopic = async (userId, topic) => {
   }
 };
 
-// TODO: delete by user (in case of account termination)
-
 // export the functions
 module.exports = {
-  closeMongoDBConnection,
-  getDB,
   connect,
   addUser,
   getUser,

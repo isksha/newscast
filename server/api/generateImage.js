@@ -14,7 +14,6 @@ async function convertTextToImage(text) {
     size: '1024x1024',
   });
 
-  console.log(image_url.data.data[0].url);
   return image_url.data.data[0].url;
 }
 
