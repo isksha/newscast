@@ -70,14 +70,18 @@ const postFile = async (bucketName, url, userId, date) => {
     const uploadStream = bucket.openUploadStream(`${userId}_${month}_${day}_${year}.${extension}`);
     response.data.pipe(uploadStream);
 
-    await new Promise((resolve, reject) => {
-      uploadStream.on('finish', resolve);
+    const fileId = await new Promise((resolve, reject) => {
+      uploadStream.on('finish', () => {
+        resolve(uploadStream.id);
+      });
       uploadStream.on('error', reject);
     });
 
     console.log('File uploaded successfully');
+    return fileId;
   } catch (err) {
     console.log(`Could not post file ${err}`);
+    return null;
   }
 };
 
