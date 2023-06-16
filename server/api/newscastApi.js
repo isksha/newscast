@@ -1,6 +1,7 @@
 const { exec } = require('child_process');
-const rake = require('node-rake');
+const { WordTokenizer, TfIdf } = require('natural');
 const { Configuration, OpenAIApi } = require('openai');
+const constants = require('../constants/newscastConstants');
 
 const generateTranscript = async () => new Promise((resolve, reject) => {
   const cmd = 'cd api &&\ python3 generate_transcript.py';
@@ -29,8 +30,18 @@ async function convertTextToImage(text) {
 }
 
 async function generateTags(text) {
-  console.log(rake.generate(text));
-  return rake.generate(text);
+  const tokenizer = new WordTokenizer();
+  const words = tokenizer.tokenize(text);
+
+  const tfidf = new TfIdf();
+  tfidf.addDocument(words.join(' '));
+
+  const numKeywords = 30;
+  const keywords = tfidf.listTerms(0)
+    .slice(0, numKeywords)
+    .map((term) => term.term);
+
+  return keywords.filter((item) => constants.TAGS_SET.has(item));
 }
 
 module.exports = {
