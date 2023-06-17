@@ -117,6 +117,14 @@ const deleteFile = async (bucketName, fileId) => {
   }
 };
 
+// --------------- DEVELOPER FUNCTIONS ---------------- //
+
+const deleteAllDocuments = async (collectionName) => {
+  const dbFiles = await getDB(process.env.MONGO_DB_NAME);
+  await dbFiles.collection(`${collectionName}.files`).deleteMany();
+  await dbFiles.collection(`${collectionName}.chunks`).deleteMany();
+};
+
 module.exports = {
   connect,
   getJPEG,
@@ -125,4 +133,5 @@ module.exports = {
   getMP3,
   postMP3,
   deleteMP3,
+  deleteAllDocuments,
 };

@@ -10,7 +10,6 @@ const dbURL = process.env.MONGO_URI;
 let MongoConnection;
 // connection to the db
 const connect = async () => {
-  console.log(dbURL);
   try {
     MongoConnection = await MongoClient.connect(dbURL, {
       useNewUrlParser: true,
@@ -18,7 +17,7 @@ const connect = async () => {
     });
     return MongoConnection;
   } catch (err) {
-    console.log('Error while connecting to MongoDBZ');
+    console.log('Error while connecting to MongoDB');
   }
 };
 
@@ -251,6 +250,13 @@ const getNewscastsByUserAndTopic = async (userId, topic) => {
   }
 };
 
+// --------------- DEVELOPER FUNCTIONS ---------------- //
+
+const deleteAllDocuments = async (collectionName) => {
+  const db = await getDB(process.env.MONGO_DB_NAME);
+  await db.collection(collectionName).deleteMany();
+};
+
 // export the functions
 module.exports = {
   connect,
@@ -263,4 +269,5 @@ module.exports = {
   updateNewscast,
   deleteNewscast,
   getNewscastsByUserAndTopic,
+  deleteAllDocuments,
 };
