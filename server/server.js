@@ -5,8 +5,8 @@
 const express = require('express');
 const cors = require('cors');
 const SHA3 = require('crypto-js/sha3');
-// const say = require('say');
 const newscastApi = require('./api/newscastApi');
+const constants = require('./constants/newscastConstants');
 const dbLib = require('./db/mongoOperations');
 const gridfsLib = require('./db/gridfsOperations');
 
@@ -22,9 +22,10 @@ webapp.get('/', async (req, res) => {
   // dbLib.connect();
   // const newsletterStr = await transcriptExtracter.getTranscript('Hello', 'World');
   // dbLib.addNewscast('iskander', 'general', newsletterStr, new Date());
-  // const resp = await dbLib.getNewscast('iskander', 'general', new Date('2023-05-26'));
+  // const resp = await dbLib.getNewscastByUserAndTags('iskander', "travel,program,diversity");
+  // const resp = await dbLib.getNewscastByUserAndDate('iskander', new Date('2023-05-26'));
   // const resp = await dbLib.deleteNewscast('iskander', 'sports', new Date('2023-05-26'));
-  // const resp = await dbLib.getNewscastsByUserAndTopic('iskander', 'sports');
+  // const resp = await dbLib.getNewscastsByUserAndTags('iskander', 'sports');
   // const resp = await dbLib.updateNewscast('iskander', 'sports', new Date('2023-05-26'), 'The thing about Arsenal is they always try and walk it in');
   // const resp = await dbLib.addUser('iskander', 'Iskerling', 'Haangareev', 'helloworld');
   // const resp = await dbLib.getUser('iskander');
@@ -32,7 +33,7 @@ webapp.get('/', async (req, res) => {
   // const resp = await dbLib.deleteUser('aaron');
   // const resp = await imageGenerator.convertTagsToImage('me eating cake');
   // await gridfsLib.postJPEG('https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png', 'iskander', new Date());
-  await gridfsLib.getJPEG('648dcc3ae039e03cea1ac75b');
+  // await gridfsLib.getJPEG('648dcc3ae039e03cea1ac75b');
   // await gridfsLib.deleteJPEG('64877e1ba097fa87eaed2473');
   // const newscastStr = await newscastApi.generateTranscript();
   // const tags = await newscastApi.generateTags(newscastStr);
@@ -80,36 +81,38 @@ webapp.put('/users', async (req, res) => {
 
 /* --------------------- Transcript endpoints ---------------------*/
 
-// get user's transcript by date and topic
-webapp.get('/newscasts/:userId/:topic/:date', async (req, res) => {
-  // curl -i -X GET http://localhost:8080/newscasts/iskander/general/2023-05-26
-  const ret = await dbLib.getNewscast(req.params.userId, req.params.topic, new Date(req.params.date));
-  // say.speak(ret?.transcript, 'Alex', 1.0, (err) => {
-  //   if (err) {
-  //     console.log("Couldn't read transcript");
-  //   }
-  // });
+// get all transcripts by user
+webapp.get('/newscasts/:userId', async (req, res) => {
+  // curl -i -X GET http://localhost:8080/newscasts/iskander/
+  const ret = await dbLib.getNewscastsByUser(req.params.userId);
   res.json(ret);
 });
 
-// get all transcripts by user and topic
-webapp.get('/newscasts/:userId/:topic', async (req, res) => {
-  // curl -i -X GET http://localhost:8080/newscasts/iskander
-  const ret = await dbLib.getNewscastsByUserAndTopic(req.params.userId, req.params.topic);
+// get user's transcript by date
+webapp.get(`/newscasts/:userId/:date/${constants.REST_GET_BY_DATE}`, async (req, res) => {
+  // curl -i -X GET http://localhost:8080/newscasts/iskander/2023-06-17/0
+  const ret = await dbLib.getNewscastByUserAndDate(req.params.userId, new Date(req.params.date));
+  res.json(ret);
+});
+
+// get all transcripts by user and tags
+webapp.get(`/newscasts/:userId/:tags/${constants.REST_GET_BY_TAGS}`, async (req, res) => {
+  // curl -i -X GET http://localhost:8080/newscasts/iskander/sports,general/1
+  const ret = await dbLib.getNewscastsByUserAndTags(req.params.userId, req.params.tags);
   res.json(ret);
 });
 
 // delete user's transcript by date and topic
 webapp.delete('/newscasts/:userId/:topic/:date', async (req, res) => {
   // curl -i -X DELETE http://localhost:8080/newscasts/iskander/general/2023-05-25
-  const ret = await dbLib.deleteNewscast(req.params.userId, req.params.topic, new Date(req.params.date));
+  const ret = await dbLib.deleteNewscast(req.params.userId, new Date(req.params.date));
   res.json(ret);
 });
 
 // add new transcript & update all required state (if doesn't exist yet)
 webapp.post('/newscasts', async (req, res) => {
   // curl -i -X POST -d 'userId=aimee&topic=general&transcript=wazzap&date=2023-04-23' http://localhost:8080/newscasts
-  const exists = await dbLib.getNewscast(req.body.userId, req.body.topic, new Date(req.body.date));
+  const exists = await dbLib.getNewscast(req.body.userId, new Date(req.body.date));
   if (exists) {
     return res.json({ message: 'Transcript already exists' });
   }

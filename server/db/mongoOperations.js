@@ -146,7 +146,7 @@ const addNewscast = async (userId, tags, transcript, imageUrl, date) => {
 };
 
 // date given as Date() object
-const getNewscast = async (userId, topic, date) => {
+const getNewscastByUserAndDate = async (userId, date) => {
   // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
@@ -159,7 +159,6 @@ const getNewscast = async (userId, topic, date) => {
 
     const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).findOne({
       userId,
-      topic,
       date: {
         $gte: startDate,
         $lte: endDate,
@@ -167,10 +166,45 @@ const getNewscast = async (userId, topic, date) => {
     });
 
     // print the results
-    console.log(`get transcript: ${JSON.stringify(result)}`);
+    console.log('Successfully extracted newscast by user and date');
     return result;
   } catch (err) {
-    console.log('Could not get newscast');
+    console.log('Could not get newscast by user and date');
+  }
+};
+
+const getNewscastsByUser = async (userId) => {
+  // get the db
+  try {
+    // get the db
+    const db = await getDB(process.env.MONGO_DB_NAME);
+
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).find({ userId }).toArray();
+
+    // print the results
+    console.log('Successfully extracted newscast by user');
+    return result;
+  } catch (err) {
+    console.log('Could not get newscasts by user');
+  }
+};
+
+const getNewscastsByUserAndTags = async (userId, tags) => {
+  // get the db
+  try {
+    // get the db
+    const db = await getDB(process.env.MONGO_DB_NAME);
+
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).find({
+      userId,
+      tags: { $in: tags.split(',') },
+    }).toArray();
+
+    // print the results
+    console.log('Successfully extracted newscasts by user and tags');
+    return result;
+  } catch (err) {
+    console.log('Could not get newscasts by user and tags');
   }
 };
 
@@ -233,23 +267,6 @@ const deleteNewscast = async (userId, topic, date) => {
   }
 };
 
-const getNewscastsByUserAndTopic = async (userId, topic) => {
-  // get the db
-  try {
-    // get the db
-    const db = await getDB(process.env.MONGO_DB_NAME);
-
-    const toFind = topic === null ? { userId } : { userId, topic };
-    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).find(toFind).toArray();
-
-    // print the results
-    console.log(`get listings: ${JSON.stringify(result)}`);
-    return result;
-  } catch (err) {
-    console.log('Could not get newscasts');
-  }
-};
-
 // --------------- DEVELOPER FUNCTIONS ---------------- //
 
 const deleteAllDocuments = async (collectionName) => {
@@ -265,9 +282,10 @@ module.exports = {
   updateUser,
   deleteUser,
   addNewscast,
-  getNewscast,
+  getNewscastsByUser,
+  getNewscastByUserAndDate,
+  getNewscastsByUserAndTags,
   updateNewscast,
   deleteNewscast,
-  getNewscastsByUserAndTopic,
   deleteAllDocuments,
 };
