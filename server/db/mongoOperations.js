@@ -1,5 +1,6 @@
 // import the mongodb driver
 const { MongoClient } = require('mongodb');
+const gridfsLib = require('./gridfsOperations');
 require('dotenv').config();
 
 // the mongodb server URL
@@ -10,7 +11,6 @@ const dbURL = process.env.MONGO_URI;
 let MongoConnection;
 // connection to the db
 const connect = async () => {
-  console.log(dbURL);
   try {
     MongoConnection = await MongoClient.connect(dbURL, {
       useNewUrlParser: true,
@@ -18,7 +18,7 @@ const connect = async () => {
     });
     return MongoConnection;
   } catch (err) {
-    console.log('Error while connecting to MongoDBZ');
+    console.log('Error while connecting to MongoDB');
   }
 };
 
@@ -125,20 +125,21 @@ const deleteUser = async (userId) => {
 
 /* --------------------- CRUD for transcripts ---------------------*/
 
-const addNewscast = async (userId, topic, transcript, date) => {
+const addNewscast = async (userId, tags, transcript, imageUrl, date) => {
   // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
     // create the new transcript
     const newTranscript = {
       userId,
-      topic,
+      tags,
       transcript,
+      imageUrl,
       date,
     };
     const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).insertOne(newTranscript);
     // print the results
-    console.log(`add transcript: ${JSON.stringify(result)}`);
+    console.log('5/5 Uploaded document to MongoDB successfully');
     return result;
   } catch (err) {
     console.log('Could not add newscast');
@@ -146,7 +147,7 @@ const addNewscast = async (userId, topic, transcript, date) => {
 };
 
 // date given as Date() object
-const getNewscast = async (userId, topic, date) => {
+const getNewscastByUserAndDate = async (userId, date) => {
   // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
@@ -159,7 +160,6 @@ const getNewscast = async (userId, topic, date) => {
 
     const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).findOne({
       userId,
-      topic,
       date: {
         $gte: startDate,
         $lte: endDate,
@@ -167,10 +167,45 @@ const getNewscast = async (userId, topic, date) => {
     });
 
     // print the results
-    console.log(`get transcript: ${JSON.stringify(result)}`);
+    console.log('Successfully extracted newscast by user and date');
     return result;
   } catch (err) {
-    console.log('Could not get newscast');
+    console.log('Could not get newscast by user and date');
+  }
+};
+
+const getNewscastsByUser = async (userId) => {
+  // get the db
+  try {
+    // get the db
+    const db = await getDB(process.env.MONGO_DB_NAME);
+
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).find({ userId }).toArray();
+
+    // print the results
+    console.log('Successfully extracted newscast by user');
+    return result;
+  } catch (err) {
+    console.log('Could not get newscasts by user');
+  }
+};
+
+const getNewscastsByUserAndTags = async (userId, tags) => {
+  // get the db
+  try {
+    // get the db
+    const db = await getDB(process.env.MONGO_DB_NAME);
+
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).find({
+      userId,
+      tags: { $in: tags.split(',') },
+    }).toArray();
+
+    // print the results
+    console.log('Successfully extracted newscasts by user and tags');
+    return result;
+  } catch (err) {
+    console.log('Could not get newscasts by user and tags');
   }
 };
 
@@ -205,7 +240,7 @@ const updateNewscast = async (userId, topic, date, newTranscript) => {
   }
 };
 
-const deleteNewscast = async (userId, topic, date) => {
+const deleteNewscast = async (userId, date) => {
   // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
@@ -216,38 +251,30 @@ const deleteNewscast = async (userId, topic, date) => {
     const endDate = new Date(date);
     endDate.setHours(23, 59, 59, 999);
 
-    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).deleteOne({
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).findOneAndDelete({
       userId,
-      topic,
       date: {
         $gte: startDate,
         $lte: endDate,
       },
     });
 
-    // print the results
-    console.log(`deleted transcript: ${JSON.stringify(result)}`);
+    await gridfsLib.deleteJPEG(result.value.imageUrl);
+
+    console.log('Deleted transcript by date');
     return result;
   } catch (err) {
     console.log('Could not delete newscast');
+    return null;
   }
 };
 
-const getNewscastsByUserAndTopic = async (userId, topic) => {
-  // get the db
-  try {
-    // get the db
-    const db = await getDB(process.env.MONGO_DB_NAME);
+// --------------- DEVELOPER FUNCTIONS ---------------- //
 
-    const toFind = topic === null ? { userId } : { userId, topic };
-    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).find(toFind).toArray();
-
-    // print the results
-    console.log(`get listings: ${JSON.stringify(result)}`);
-    return result;
-  } catch (err) {
-    console.log('Could not get newscasts');
-  }
+const deleteAllDocuments = async (collectionName) => {
+  const db = await getDB(process.env.MONGO_DB_NAME);
+  await db.collection(collectionName).deleteMany();
+  console.log('All mongo documents deleted');
 };
 
 // export the functions
@@ -258,8 +285,10 @@ module.exports = {
   updateUser,
   deleteUser,
   addNewscast,
-  getNewscast,
+  getNewscastsByUser,
+  getNewscastByUserAndDate,
+  getNewscastsByUserAndTags,
   updateNewscast,
   deleteNewscast,
-  getNewscastsByUserAndTopic,
+  deleteAllDocuments,
 };
