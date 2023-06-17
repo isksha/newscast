@@ -36,7 +36,7 @@ webapp.get('/', async (req, res) => {
   // const resp = await dbLib.deleteUser('aaron');
   // const resp = await imageGenerator.convertTagsToImage('me eating cake');
   // await gridfsLib.postJPEG('https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png', 'iskander', new Date());
-  // await gridfsLib.getJPEG('648dcc3ae039e03cea1ac75b');
+  await gridfsLib.getJPEG('648e07a90933ebb98de69425');
   // await gridfsLib.deleteJPEG('64877e1ba097fa87eaed2473');
 
   /**
@@ -48,14 +48,14 @@ webapp.get('/', async (req, res) => {
   //   return res.json({ message: 'Transcript already exists' });
   // }
 
-  // const startTime = performance.now();
-  // const newscastStr = await newscastApi.generateTranscript();
-  // const tags = await newscastApi.generateTags(newscastStr);
-  // const imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
-  // const gridfsImageId = await gridfsLib.postJPEG(imageUrl, 'iskander', new Date());
-  // const ret = await dbLib.addNewscast('iskander', tags, newscastStr, gridfsImageId, new Date());
-  // const endTime = performance.now();
-  // console.log(`Generated transcript in: ${endTime - startTime} ms`);
+  const startTime = performance.now();
+  const newscastStr = await newscastApi.generateTranscript();
+  const tags = await newscastApi.generateTags(newscastStr);
+  const imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
+  const gridfsImageId = await gridfsLib.postJPEG(imageUrl, 'iskander', new Date());
+  const ret = await dbLib.addNewscast('iskander', tags, newscastStr, gridfsImageId, new Date());
+  const endTime = performance.now();
+  console.log(`Generated transcript in: ${endTime - startTime} ms`);
 
   /**
    * uncomment to remove all newscasts and their associated files from the database
@@ -133,7 +133,7 @@ webapp.delete('/newscasts/:userId/:date', async (req, res) => {
 
 // add new transcript & update all required state (if doesn't exist yet)
 webapp.post('/newscasts', async (req, res) => {
-  // curl -i -X POST -d 'userId=aimee&topic=general&transcript=wazzap&date=2023-04-23' http://localhost:8080/newscasts
+  // curl too annoying to do
   console.log('Started generating transcript');
   const exists = await dbLib.getNewscastByUserAndDate(req.body.userId, new Date(req.body.date));
   if (exists) {
@@ -156,8 +156,20 @@ webapp.post('/newscasts', async (req, res) => {
 
 // update transcript
 webapp.put('/newscasts', async (req, res) => {
-  // curl -i -X PUT -d 'userId=aimee&topic=general&transcript=THIS WAS UPDATED&date=2023-04-23' http://localhost:8080/newscasts
-  const ret = await dbLib.updateNewscast(req.body.userId, req.body.topic, new Date(req.body.date), req.body.transcript);
+  // curl -i -X PUT -d 'userId=iskander&date=2023-06-17' http://localhost:8080/newscasts
+  const deleted = await dbLib.deleteNewscast(req.body.userId, new Date(req.body.date));
+
+  if (deleted === null) {
+    console.log('Could not update non-existent transcript');
+    return res.json({ message: 'Could not update non-existent transcript' });
+  }
+
+  console.log('Started generating transcript');
+  const newscastStr = await newscastApi.generateTranscript();
+  const tags = await newscastApi.generateTags(newscastStr);
+  const imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
+  const gridfsImageId = await gridfsLib.postJPEG(imageUrl, req.body.userId, new Date(req.body.date));
+  const ret = await dbLib.addNewscast(req.body.userId, tags, newscastStr, gridfsImageId, new Date(req.body.date));
   res.json(ret);
 });
 

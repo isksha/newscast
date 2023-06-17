@@ -265,6 +265,7 @@ const deleteNewscast = async (userId, date) => {
     return result;
   } catch (err) {
     console.log('Could not delete newscast');
+    return null;
   }
 };
 
