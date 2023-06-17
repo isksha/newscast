@@ -2,6 +2,7 @@ const { MongoClient, GridFSBucket, ObjectId } = require('mongodb');
 const fs = require('fs');
 const axios = require('axios');
 const util = require('util');
+require('dotenv').config();
 
 // the mongodb server URL
 const dbURL = process.env.MONGO_URI;
@@ -18,7 +19,7 @@ const connect = async () => {
     });
     return MongoConnection;
   } catch (err) {
-    console.log('Error while connecting to MongoDB');
+    console.log('Error while connecting to MongoDB in GridFS');
   }
 };
 
@@ -62,8 +63,8 @@ const postFile = async (bucketName, url, userId, date) => {
     const bucket = new GridFSBucket(db, { bucketName });
     const response = await axios.get(url, { responseType: 'stream' });
 
-    const month = date.getMonth();
-    const day = date.getDay();
+    const month = date.getMonth() + 1; // zero index in JS
+    const day = date.getDate();
     const year = date.getFullYear();
     const extension = (bucketName === process.env.MONGO_GRIDFS_JPG_BUCKET) ? 'jpg' : 'mp3';
 
@@ -77,7 +78,7 @@ const postFile = async (bucketName, url, userId, date) => {
       uploadStream.on('error', reject);
     });
 
-    console.log('File uploaded successfully');
+    console.log('4/5 Uploaded image to GridFS successfully');
     return fileId;
   } catch (err) {
     console.log(`Could not post file ${err}`);
@@ -109,7 +110,7 @@ const deleteFile = async (bucketName, fileId) => {
     const bucket = new GridFSBucket(db, { bucketName });
 
     const _id = new ObjectId(fileId);
-    const file = await db.collection(`${bucketName}.files`).deleteOne({ _id });
+    const file = await bucket.delete(_id);
 
     console.log('File deleted successfully');
   } catch (err) {
@@ -120,9 +121,10 @@ const deleteFile = async (bucketName, fileId) => {
 // --------------- DEVELOPER FUNCTIONS ---------------- //
 
 const deleteAllDocuments = async (collectionName) => {
-  const dbFiles = await getDB(process.env.MONGO_DB_NAME);
-  await dbFiles.collection(`${collectionName}.files`).deleteMany();
-  await dbFiles.collection(`${collectionName}.chunks`).deleteMany();
+  const db = await getDB(process.env.MONGO_DB_NAME);
+  await db.collection(`${collectionName}.files`).deleteMany();
+  await db.collection(`${collectionName}.chunks`).deleteMany();
+  console.log('All gridfs documents deleted');
 };
 
 module.exports = {

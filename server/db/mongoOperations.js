@@ -1,5 +1,6 @@
 // import the mongodb driver
 const { MongoClient } = require('mongodb');
+const gridfsLib = require('./gridfsOperations');
 require('dotenv').config();
 
 // the mongodb server URL
@@ -138,7 +139,7 @@ const addNewscast = async (userId, tags, transcript, imageUrl, date) => {
     };
     const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).insertOne(newTranscript);
     // print the results
-    console.log(`add transcript: ${JSON.stringify(result)}`);
+    console.log('5/5 Uploaded document to MongoDB successfully');
     return result;
   } catch (err) {
     console.log('Could not add newscast');
@@ -239,7 +240,7 @@ const updateNewscast = async (userId, topic, date, newTranscript) => {
   }
 };
 
-const deleteNewscast = async (userId, topic, date) => {
+const deleteNewscast = async (userId, date) => {
   // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
@@ -250,17 +251,17 @@ const deleteNewscast = async (userId, topic, date) => {
     const endDate = new Date(date);
     endDate.setHours(23, 59, 59, 999);
 
-    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).deleteOne({
+    const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).findOneAndDelete({
       userId,
-      topic,
       date: {
         $gte: startDate,
         $lte: endDate,
       },
     });
 
-    // print the results
-    console.log(`deleted transcript: ${JSON.stringify(result)}`);
+    await gridfsLib.deleteJPEG(result.value.imageUrl);
+
+    console.log('Deleted transcript by date');
     return result;
   } catch (err) {
     console.log('Could not delete newscast');
@@ -272,6 +273,7 @@ const deleteNewscast = async (userId, topic, date) => {
 const deleteAllDocuments = async (collectionName) => {
   const db = await getDB(process.env.MONGO_DB_NAME);
   await db.collection(collectionName).deleteMany();
+  console.log('All mongo documents deleted');
 };
 
 // export the functions
