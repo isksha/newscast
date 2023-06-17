@@ -36,7 +36,7 @@ webapp.get('/', async (req, res) => {
   // const resp = await dbLib.deleteUser('aaron');
   // const resp = await imageGenerator.convertTagsToImage('me eating cake');
   // await gridfsLib.postJPEG('https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png', 'iskander', new Date());
-  await gridfsLib.getJPEG('648e07a90933ebb98de69425');
+  // await gridfsLib.getJPEG('648e07a90933ebb98de69425');
   // await gridfsLib.deleteJPEG('64877e1ba097fa87eaed2473');
 
   /**
