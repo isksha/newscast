@@ -1,6 +1,7 @@
 const { exec } = require('child_process');
 const { WordTokenizer, TfIdf } = require('natural');
 const { Configuration, OpenAIApi } = require('openai');
+const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
 const constants = require('../constants/newscastConstants');
 
 const generateTranscript = async () => new Promise((resolve, reject) => {
@@ -46,6 +47,18 @@ async function convertTagsToImage(tags) {
 
   console.log('3/5 Converted tags to image successfully');
   return image_url.data.data[0].url;
+}
+
+async function generateTtsMp3(text) {
+  const tts = new TextToSpeechClient();
+  const ttsRequest = {
+    input: { text },
+    voice: { languageCode: 'en-US', ssmlGender: 'FEMALE' },
+    audioConfig: { audioEncoding: 'MP3' },
+  };
+
+  const [ttsResponse] = await tts.synthesizeSpeech(ttsRequest);
+  fs.writeFileSync(outputFile, ttsResponse.audioContent, 'binary');
 }
 
 module.exports = {
