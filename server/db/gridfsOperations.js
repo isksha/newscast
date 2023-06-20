@@ -1,7 +1,8 @@
 const { MongoClient, GridFSBucket, ObjectId } = require('mongodb');
 const fs = require('fs');
 const axios = require('axios');
-const util = require('util');
+const { promisify } = require('util');
+const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 // the mongodb server URL
@@ -90,14 +91,16 @@ const getFile = async (bucketName, fileId) => {
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
     const bucket = new GridFSBucket(db, { bucketName });
-    const mkdir = util.promisify(fs.mkdir);
+    const mkdir = promisify(fs.mkdir);
     await mkdir('artifacts', { recursive: true });
 
     const _id = new ObjectId(fileId);
     const file = await db.collection(`${bucketName}.files`).findOne({ _id });
 
+    const fileName = `artifacts/${uuidv4()}.jpg`;
+
     bucket.openDownloadStream(_id)
-      .pipe(fs.createWriteStream(`artifacts/${file.filename}`), { flags: 'w' });
+      .pipe(fs.createWriteStream(fileName), { flags: 'w' });
     console.log('File downloaded successfully');
   } catch (err) {
     console.log('Could not find file');

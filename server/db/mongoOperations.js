@@ -164,10 +164,12 @@ const getNewscastByUserAndDate = async (userId, date) => {
         $gte: startDate,
         $lte: endDate,
       },
-    });
+    }).toArray();
 
     // print the results
-    console.log('Successfully extracted newscast by user and date');
+    if (result.length !== 0) {
+      console.log('Successfully extracted newscast by user and date');
+    }
     return result;
   } catch (err) {
     console.log('Could not get newscast by user and date');
