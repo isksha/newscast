@@ -43,25 +43,7 @@ webapp.get('/', async (req, res) => {
   /**
    * uncomment to get an image using an existing url
    */
-  await gridfsLib.getJPEG('64913a7c3cd027aaca53bafa');
-
-  /**
-   * uncomment to easily go through the pipeline of generating and storing a newscast
-   */
-
-  // const exists = await dbLib.getNewscastByUserAndDate('iskander', new Date());
-  // if (exists) {
-  //   return res.json({ message: 'Transcript already exists' });
-  // }
-
-  // const startTime = performance.now();
-  // const newscastStr = await newscastApi.generateTranscript();
-  // const tags = await newscastApi.generateTags(newscastStr);
-  // const imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
-  // const gridfsImageId = await gridfsLib.postJPEG(imageUrl, 'iskander', new Date());
-  // const ret = await dbLib.addNewscast('iskander', tags, newscastStr, gridfsImageId, new Date());
-  // const endTime = performance.now();
-  // console.log(`Generated transcript in: ${endTime - startTime} ms`);
+  // await gridfsLib.getJPEG('64913a7c3cd027aaca53bafa');
 
   /**
    * uncomment to remove all newscasts and their associated files from the database
@@ -152,6 +134,8 @@ webapp.post('/newscasts', async (req, res) => {
   const tags = await newscastApi.generateTags(newscastStr);
   const imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
   const gridfsImageId = await gridfsLib.postJPEG(imageUrl, req.body.userId, new Date());
+  const mp3File = await newscastApi.generateTtsMp3(newscastStr);
+  const gridfsMp3Id = await gridfsLib.postMP3(mp3File, req.body.userId, new Date(req.body.date));
   const ret = await dbLib.addNewscast(req.body.userId, tags, newscastStr, gridfsImageId, new Date());
 
   const endTime = performance.now();
@@ -162,7 +146,7 @@ webapp.post('/newscasts', async (req, res) => {
 
 // update transcript
 webapp.put('/newscasts', async (req, res) => {
-  // curl -i -X PUT -d 'userId=iskander&date=2023-06-17' http://localhost:8080/newscasts
+  // curl -i -X PUT -d 'userId=iskander&date=2023-06-21' http://localhost:8080/newscasts
   const deleted = await dbLib.deleteNewscast(req.body.userId, new Date(req.body.date));
 
   if (deleted === null) {
@@ -175,14 +159,45 @@ webapp.put('/newscasts', async (req, res) => {
   const tags = await newscastApi.generateTags(newscastStr);
   const imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
   const gridfsImageId = await gridfsLib.postJPEG(imageUrl, req.body.userId, new Date(req.body.date));
-  const ret = await dbLib.addNewscast(req.body.userId, tags, newscastStr, gridfsImageId, new Date(req.body.date));
-  res.json(ret);
+  const mp3File = await newscastApi.generateTtsMp3(newscastStr);
+  const gridfsMp3Id = await gridfsLib.postMP3(mp3File, req.body.userId, new Date(req.body.date));
+  // TODO: add mp3 to db
+  const addTranscriptResult = await dbLib.addNewscast(req.body.userId, tags, newscastStr, gridfsImageId, new Date(req.body.date));
+  res.json(addTranscriptResult);
 });
 
 /* --------------------- GRIDFS resource endpoints ---------------------*/
 
+// TODO: implement
 // retrieve image by uuid
-webapp.get('/temp/:filename', (req, res) => {
+webapp.get('/temp/img/:filename', (req, res) => {
+  const filePath = `./artifacts/${req.params.filename}`;
+
+  res.setHeader('Content-Type', 'image/jpeg');
+
+  if (!fs.existsSync(filePath)) {
+    console.log('File not found');
+    res.status(404).send('File not found');
+    return;
+  }
+
+  const fileStream = fs.createReadStream(filePath);
+  fileStream.pipe(res);
+
+  // delete temp image after serving
+  fileStream.on('close', () => {
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.log('Error deleting file:', err);
+      } else {
+        console.log('File deleted successfully');
+      }
+    });
+  });
+});
+
+// retrieve mp3 by uuid
+webapp.get('/temp/audio/:filename', (req, res) => {
   const filePath = `./artifacts/${req.params.filename}`;
 
   res.setHeader('Content-Type', 'image/jpeg');

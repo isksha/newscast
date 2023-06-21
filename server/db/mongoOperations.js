@@ -139,7 +139,7 @@ const addNewscast = async (userId, tags, transcript, imageUrl, date) => {
     };
     const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).insertOne(newTranscript);
     // print the results
-    console.log('5/5 Uploaded document to MongoDB successfully');
+    console.log('7/7 Uploaded document to MongoDB successfully');
     return result;
   } catch (err) {
     console.log('Could not add newscast');

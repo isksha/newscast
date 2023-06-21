@@ -9,7 +9,7 @@ const generateTranscript = async () => new Promise((resolve, reject) => {
   exec(
     cmd.replace(/\n/g, '\\\n'),
     (error, stdout, stderr) => {
-      console.log('1/5 Generated transcript successfully');
+      console.log('1/7 Generated transcript successfully');
       resolve(stdout);
     },
   );
@@ -28,7 +28,7 @@ async function generateTags(text) {
     .map((term) => term.term);
 
   const filteredKeywords = keywords.filter((item) => constants.TAGS_SET.has(item));
-  console.log('2/5 Generated tags successfully');
+  console.log('2/7 Generated tags successfully');
   return (filteredKeywords.length == 0) ? ['uncategorized'] : filteredKeywords;
 }
 
@@ -45,24 +45,32 @@ async function convertTagsToImage(tags) {
     size: '1024x1024',
   });
 
-  console.log('3/5 Converted tags to image successfully');
+  console.log('3/7 Converted tags to image successfully');
   return image_url.data.data[0].url;
 }
 
 async function generateTtsMp3(text) {
-  const tts = new TextToSpeechClient();
-  const ttsRequest = {
-    input: { text },
-    voice: { languageCode: 'en-US', ssmlGender: 'FEMALE' },
-    audioConfig: { audioEncoding: 'MP3' },
-  };
+  try {
+    // Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information
+    const tts = new TextToSpeechClient();
+    const ttsRequest = {
+      input: { text },
+      voice: { languageCode: 'en-US', ssmlGender: 'FEMALE' },
+      audioConfig: { audioEncoding: 'MP3' },
+    };
 
-  const [ttsResponse] = await tts.synthesizeSpeech(ttsRequest);
-  fs.writeFileSync(outputFile, ttsResponse.audioContent, 'binary');
+    const [ttsResponse] = await tts.synthesizeSpeech(ttsRequest);
+    console.log('6/7 Uploaded mp3 to GridFS successfully');
+    return ttsResponse.audioContent;
+  } catch (err) {
+    console.log(`Failed to generate TTS mp3 ${err}`);
+    return null;
+  }
 }
 
 module.exports = {
   generateTranscript,
   convertTagsToImage,
   generateTags,
+  generateTtsMp3,
 };

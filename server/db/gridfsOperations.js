@@ -46,19 +46,19 @@ const closeMongoDBConnection = async () => {
 
 /* --------------------- Image operations ---------------------*/
 
-const postJPEG = async (url, userId, date) => await postFile(process.env.MONGO_GRIDFS_JPG_BUCKET, url, userId, date);
+const postJPEG = async (url, userId, date) => await postFileFromUrl(process.env.MONGO_GRIDFS_JPG_BUCKET, url, userId, date);
 const getJPEG = async (fileId) => await getFile(process.env.MONGO_GRIDFS_JPG_BUCKET, fileId);
 const deleteJPEG = async (fileId) => await deleteFile(process.env.MONGO_GRIDFS_JPG_BUCKET, fileId);
 
 /* --------------------- MP3 operations -----------------------*/
 
-const postMP3 = async (url, userId, date) => await postFile(process.env.MONGO_GRIDFS_MP3_BUCKET, url, userId, date);
+const postMP3 = async (url, userId, date) => await postFileFromBinary(process.env.MONGO_GRIDFS_MP3_BUCKET, url, userId, date);
 const getMP3 = async (fileId) => await getFile(process.env.MONGO_GRIDFS_MP3_BUCKET, fileId);
 const deleteMP3 = async (fileId) => await deleteFile(process.env.MONGO_GRIDFS_MP3_BUCKET, fileId);
 
 /* --------------------- Unified CRUD -------------------------*/
 
-const postFile = async (bucketName, url, userId, date) => {
+const postFileFromUrl = async (bucketName, url, userId, date) => {
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
     const bucket = new GridFSBucket(db, { bucketName });
@@ -67,7 +67,7 @@ const postFile = async (bucketName, url, userId, date) => {
     const month = date.getMonth() + 1; // zero index in JS
     const day = date.getDate();
     const year = date.getFullYear();
-    const extension = (bucketName === process.env.MONGO_GRIDFS_JPG_BUCKET) ? 'jpg' : 'mp3';
+    const extension = 'jpg';
 
     const uploadStream = bucket.openUploadStream(`${userId}_${month}_${day}_${year}.${extension}`);
     response.data.pipe(uploadStream);
@@ -79,10 +79,41 @@ const postFile = async (bucketName, url, userId, date) => {
       uploadStream.on('error', reject);
     });
 
-    console.log('4/5 Uploaded image to GridFS successfully');
+    console.log('4/7 Uploaded image to GridFS successfully');
     return fileId;
   } catch (err) {
-    console.log(`Could not post file ${err}`);
+    console.log('Could not post image file');
+    return null;
+  }
+};
+
+const postFileFromBinary = async (bucketName, audio, userId, date) => {
+  try {
+    const db = await getDB(process.env.MONGO_DB_NAME);
+    const bucket = new GridFSBucket(db, { bucketName });
+
+    const month = date.getMonth() + 1; // zero index in JS
+    const day = date.getDate();
+    const year = date.getFullYear();
+    const extension = 'jpg';
+
+    const uploadStream = bucket.openUploadStream(`${userId}_${month}_${day}_${year}.${extension}`, {
+      contentType: 'audio/mpeg',
+    });
+
+    audio.pipe(uploadStream);
+
+    const fileId = await new Promise((resolve, reject) => {
+      uploadStream.on('finish', () => {
+        resolve(uploadStream.id);
+      });
+      uploadStream.on('error', reject);
+    });
+
+    console.log('6/7 Uploaded mp3 to GridFS successfully');
+    return fileId;
+  } catch (err) {
+    console.log(`Could not post audio file ${err}`);
     return null;
   }
 };
