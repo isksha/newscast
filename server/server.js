@@ -43,7 +43,7 @@ webapp.get('/', async (req, res) => {
   /**
    * uncomment to get an image using an existing url
    */
-  await gridfsLib.getJPEG('6498b0e74e56d989f02b6ab0');
+  await gridfsLib.getJPEG('6498b5454f00f499949b526d');
 
   /**
    * uncomment to remove all newscasts and their associated files from the database
@@ -184,16 +184,16 @@ webapp.get('/temp/img/:filename', (req, res) => {
   const fileStream = fs.createReadStream(filePath);
   fileStream.pipe(res);
 
-  // delete temp image after serving
-  fileStream.on('close', () => {
-    fs.unlink(filePath, (err) => {
-      if (err) {
-        console.log('Error deleting file:', err);
-      } else {
-        console.log('File deleted successfully');
-      }
-    });
-  });
+  // // delete temp image after serving
+  // fileStream.on('close', () => {
+  //   fs.unlink(filePath, (err) => {
+  //     if (err) {
+  //       console.log('Error deleting file:', err);
+  //     } else {
+  //       console.log('File deleted successfully');
+  //     }
+  //   });
+  // });
 });
 
 // retrieve mp3 by uuid
