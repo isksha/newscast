@@ -43,7 +43,7 @@ webapp.get('/', async (req, res) => {
   /**
    * uncomment to get an image using an existing url
    */
-  // await gridfsLib.getJPEG('64913a7c3cd027aaca53bafa');
+  await gridfsLib.getJPEG('6498b0e74e56d989f02b6ab0');
 
   /**
    * uncomment to remove all newscasts and their associated files from the database
