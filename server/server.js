@@ -46,6 +46,25 @@ webapp.get('/', async (req, res) => {
   await gridfsLib.getJPEG('6498b5454f00f499949b526d');
 
   /**
+   * uncomment to easily go through the pipeline of generating and storing a newscast
+   */
+
+  // const exists = await dbLib.getNewscastByUserAndDate('iskander', new Date());
+  // if (exists) {
+  //   return res.json({ message: 'Transcript already exists' });
+  // }
+
+  // const startTime = performance.now();
+  // const newscastStr = await newscastApi.generateTranscript();
+  // const tags = await newscastApi.generateTags(newscastStr);
+  // const imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
+  // const gridfsImageId = await gridfsLib.postJPEG(imageUrl, 'iskander', new Date());
+  // const ret = await dbLib.addNewscast('iskander', tags, newscastStr, gridfsImageId, new Date());
+  // const endTime = performance.now();
+  // console.log(`Generated transcript in: ${endTime - startTime} ms`);
+
+
+  /**
    * uncomment to remove all newscasts and their associated files from the database
    */
 
