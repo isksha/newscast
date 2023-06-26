@@ -60,7 +60,7 @@ async function generateTtsMp3(text) {
     };
 
     const [ttsResponse] = await tts.synthesizeSpeech(ttsRequest);
-    console.log('6/7 Uploaded mp3 to GridFS successfully');
+    console.log('5/7 Generated mp3 successfully');
     return ttsResponse.audioContent;
   } catch (err) {
     console.log(`Failed to generate TTS mp3 ${err}`);

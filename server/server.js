@@ -43,7 +43,8 @@ webapp.get('/', async (req, res) => {
   /**
    * uncomment to get an image using an existing url
    */
-  await gridfsLib.getJPEG('6498b5454f00f499949b526d');
+  await gridfsLib.getJPEG('649920bb4fc1e85d6e6d3871');
+  await gridfsLib.getMP3('649920c14fc1e85d6e6d387f');
 
   /**
    * uncomment to easily go through the pipeline of generating and storing a newscast
@@ -62,7 +63,6 @@ webapp.get('/', async (req, res) => {
   // const ret = await dbLib.addNewscast('iskander', tags, newscastStr, gridfsImageId, new Date());
   // const endTime = performance.now();
   // console.log(`Generated transcript in: ${endTime - startTime} ms`);
-
 
   /**
    * uncomment to remove all newscasts and their associated files from the database
@@ -155,7 +155,7 @@ webapp.post('/newscasts', async (req, res) => {
   const gridfsImageId = await gridfsLib.postJPEG(imageUrl, req.body.userId, new Date());
   const mp3File = await newscastApi.generateTtsMp3(newscastStr);
   const gridfsMp3Id = await gridfsLib.postMP3(mp3File, req.body.userId, new Date(req.body.date));
-  const ret = await dbLib.addNewscast(req.body.userId, tags, newscastStr, gridfsImageId, new Date());
+  const ret = await dbLib.addNewscast(req.body.userId, tags, newscastStr, gridfsImageId, gridfsMp3Id, new Date());
 
   const endTime = performance.now();
   console.log(`Generated transcript in ${endTime - startTime} ms`);
@@ -187,7 +187,6 @@ webapp.put('/newscasts', async (req, res) => {
 
 /* --------------------- GRIDFS resource endpoints ---------------------*/
 
-// TODO: implement
 // retrieve image by uuid
 webapp.get('/temp/img/:filename', (req, res) => {
   const filePath = `./artifacts/${req.params.filename}`;
@@ -219,7 +218,7 @@ webapp.get('/temp/img/:filename', (req, res) => {
 webapp.get('/temp/audio/:filename', (req, res) => {
   const filePath = `./artifacts/${req.params.filename}`;
 
-  res.setHeader('Content-Type', 'image/jpeg');
+  res.setHeader('Content-Type', 'audio/mpeg');
 
   if (!fs.existsSync(filePath)) {
     console.log('File not found');
@@ -231,15 +230,15 @@ webapp.get('/temp/audio/:filename', (req, res) => {
   fileStream.pipe(res);
 
   // delete temp image after serving
-  fileStream.on('close', () => {
-    fs.unlink(filePath, (err) => {
-      if (err) {
-        console.log('Error deleting file:', err);
-      } else {
-        console.log('File deleted successfully');
-      }
-    });
-  });
+  // fileStream.on('close', () => {
+  //   fs.unlink(filePath, (err) => {
+  //     if (err) {
+  //       console.log('Error deleting file:', err);
+  //     } else {
+  //       console.log('File deleted successfully');
+  //     }
+  //   });
+  // });
 });
 
 // export the webapp

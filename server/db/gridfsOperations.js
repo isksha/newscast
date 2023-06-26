@@ -3,6 +3,7 @@ const fs = require('fs');
 const axios = require('axios');
 const { promisify } = require('util');
 const { v4: uuidv4 } = require('uuid');
+const { Readable } = require('stream');
 require('dotenv').config();
 
 // the mongodb server URL
@@ -96,13 +97,17 @@ const postFileFromBinary = async (bucketName, audio, userId, date) => {
     const month = date.getMonth() + 1; // zero index in JS
     const day = date.getDate();
     const year = date.getFullYear();
-    const extension = 'jpg';
+    const extension = 'mp3';
+
+    const audioStream = new Readable();
+    audioStream.push(audio);
+    audioStream.push(null); // signify the end of the stream
 
     const uploadStream = bucket.openUploadStream(`${userId}_${month}_${day}_${year}.${extension}`, {
       contentType: 'audio/mpeg',
     });
 
-    audio.pipe(uploadStream);
+    audioStream.pipe(uploadStream);
 
     const fileId = await new Promise((resolve, reject) => {
       uploadStream.on('finish', () => {
