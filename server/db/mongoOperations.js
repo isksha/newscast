@@ -125,7 +125,7 @@ const deleteUser = async (userId) => {
 
 /* --------------------- CRUD for transcripts ---------------------*/
 
-const addNewscast = async (userId, tags, transcript, imageUrl, date) => {
+const addNewscast = async (userId, tags, transcript, imageUrl, mp3Url, date) => {
   // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
@@ -135,11 +135,12 @@ const addNewscast = async (userId, tags, transcript, imageUrl, date) => {
       tags,
       transcript,
       imageUrl,
+      mp3Url,
       date,
     };
     const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).insertOne(newTranscript);
     // print the results
-    console.log('5/5 Uploaded document to MongoDB successfully');
+    console.log('7/7 Uploaded document to MongoDB successfully');
     return result;
   } catch (err) {
     console.log('Could not add newscast');
@@ -164,10 +165,12 @@ const getNewscastByUserAndDate = async (userId, date) => {
         $gte: startDate,
         $lte: endDate,
       },
-    });
+    }).toArray();
 
     // print the results
-    console.log('Successfully extracted newscast by user and date');
+    if (result.length !== 0) {
+      console.log('Successfully extracted newscast by user and date');
+    }
     return result;
   } catch (err) {
     console.log('Could not get newscast by user and date');
