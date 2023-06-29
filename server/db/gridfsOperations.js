@@ -115,9 +115,9 @@ const getFile = async (bucketName, fileId, extension) => {
     const file = await db.collection(`${bucketName}.files`).findOne({ _id });
 
     const fileName = `${uuidv4()}.${extension}`;
-    const filePath = `artifacts/${fileName}`;
+    const filePath = `./artifacts/${fileName}`;
 
-    bucket.openDownloadStream(_id)
+    await bucket.openDownloadStream(_id)
       .pipe(fs.createWriteStream(filePath), { flags: 'w' });
     console.log(`File ${fileName} downloaded successfully`);
     return fileName;
