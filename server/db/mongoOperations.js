@@ -165,7 +165,7 @@ const getNewscastByUserAndDate = async (userId, date) => {
         $gte: startDate,
         $lte: endDate,
       },
-    }).toArray();
+    });
 
     // print the results
     if (result.length !== 0) {
