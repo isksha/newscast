@@ -167,7 +167,6 @@ const getNewscastByUserAndDate = async (userId, date) => {
       },
     });
 
-    console.log(result);
     // print the results
     if (result !== null) {
       console.log('Successfully extracted newscast by user and date');
@@ -264,6 +263,7 @@ const deleteNewscast = async (userId, date) => {
     });
 
     await gridfsLib.deleteJPEG(result.value.imageUrl);
+    await gridfsLib.deleteMP3(result.value.mp3Url);
 
     console.log('Deleted transcript by date');
     return result;

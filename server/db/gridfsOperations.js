@@ -2,7 +2,6 @@ const { MongoClient, GridFSBucket, ObjectId } = require('mongodb');
 const fs = require('fs');
 const axios = require('axios');
 const { promisify } = require('util');
-const { v4: uuidv4 } = require('uuid');
 const { Readable } = require('stream');
 require('dotenv').config();
 
@@ -40,33 +39,26 @@ const getDB = async (database) => {
 /* --------------------- Unified CRUD -------------------------*/
 
 const postFileFromUrl = async (bucketName, url, userId, date) => {
-  try {
-    const db = await getDB(process.env.MONGO_DB_NAME);
-    const bucket = new GridFSBucket(db, { bucketName });
-    const response = await axios.get(url, { responseType: 'stream' });
+  const db = await getDB(process.env.MONGO_DB_NAME);
+  const bucket = new GridFSBucket(db, { bucketName });
+  const response = await axios.get(url, { responseType: 'stream' });
 
-    const month = date.getMonth() + 1; // zero index in JS
-    const day = date.getDate();
-    const year = date.getFullYear();
-    const extension = 'jpg';
+  const month = date.getMonth() + 1; // zero index in JS
+  const day = date.getDate();
+  const year = date.getFullYear();
+  const extension = 'jpg';
 
-    const uploadStream = bucket.openUploadStream(`${userId}_${month}_${day}_${year}.${extension}`);
-    response.data.pipe(uploadStream);
+  const uploadStream = bucket.openUploadStream(`${userId}_${month}_${day}_${year}.${extension}`);
+  response.data.pipe(uploadStream);
 
-    const fileId = await new Promise((resolve, reject) => {
-      uploadStream.on('finish', () => {
-        resolve(uploadStream.id);
-      });
-      uploadStream.on('error', reject);
+  const fileId = await new Promise((resolve, reject) => {
+    uploadStream.on('finish', () => {
+      resolve(uploadStream.id);
     });
-
-    console.log('4/7 Uploaded image to GridFS successfully');
-    return fileId;
-  } catch (err) {
-    console.log(err);
-    console.log('Could not post image file');
-    return null;
-  }
+    uploadStream.on('error', reject);
+  });
+  console.log('5/7 Uploaded image to GridFS successfully');
+  return fileId;
 };
 
 const postFileFromBinary = async (bucketName, audio, userId, date) => {
@@ -100,7 +92,7 @@ const postFileFromBinary = async (bucketName, audio, userId, date) => {
     return fileId;
   } catch (err) {
     console.log(`Could not post audio file ${err}`);
-    return null;
+    throw err;
   }
 };
 
@@ -114,7 +106,7 @@ const getFile = async (bucketName, fileId, extension) => {
     const _id = new ObjectId(fileId);
     const file = await db.collection(`${bucketName}.files`).findOne({ _id });
 
-    const fileName = `${uuidv4()}.${extension}`;
+    const fileName = `${fileId}.${extension}`;
     const filePath = `./artifacts/${fileName}`;
 
     await bucket.openDownloadStream(_id)
@@ -143,15 +135,15 @@ const deleteFile = async (bucketName, fileId) => {
 
 /* --------------------- Image operations ---------------------*/
 
-const postJPEG = async (url, userId, date) => postFileFromUrl(process.env.MONGO_GRIDFS_JPG_BUCKET, url, userId, date);
-const getJPEG = async (fileId) => (async () => getFile(process.env.MONGO_GRIDFS_JPG_BUCKET, fileId, 'jpg'))();
-const deleteJPEG = async (fileId) => deleteFile(process.env.MONGO_GRIDFS_JPG_BUCKET, fileId);
+const postJPEG = async (url, userId, date) => await postFileFromUrl(process.env.MONGO_GRIDFS_JPG_BUCKET, url, userId, date);
+const getJPEG = async (fileId) => (async () => await getFile(process.env.MONGO_GRIDFS_JPG_BUCKET, fileId, 'jpg'))();
+const deleteJPEG = async (fileId) => await deleteFile(process.env.MONGO_GRIDFS_JPG_BUCKET, fileId);
 
 /* --------------------- MP3 operations -----------------------*/
 
-const postMP3 = async (url, userId, date) => postFileFromBinary(process.env.MONGO_GRIDFS_MP3_BUCKET, url, userId, date);
-const getMP3 = async (fileId) => (async () => getFile(process.env.MONGO_GRIDFS_MP3_BUCKET, fileId, 'mp3'))();
-const deleteMP3 = async (fileId) => deleteFile(process.env.MONGO_GRIDFS_MP3_BUCKET, fileId);
+const postMP3 = async (url, userId, date) => await postFileFromBinary(process.env.MONGO_GRIDFS_MP3_BUCKET, url, userId, date);
+const getMP3 = async (fileId) => (async () => await getFile(process.env.MONGO_GRIDFS_MP3_BUCKET, fileId, 'mp3'))();
+const deleteMP3 = async (fileId) => await deleteFile(process.env.MONGO_GRIDFS_MP3_BUCKET, fileId);
 
 // --------------- DEVELOPER FUNCTIONS ---------------- //
 
