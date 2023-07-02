@@ -153,6 +153,8 @@ const getNewscastByUserAndDate = async (userId, date) => {
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
 
+    console.log(date, userId);
+
     // specify the range to be one day
     const startDate = new Date(date);
     startDate.setHours(0, 0, 0, 0);
@@ -167,12 +169,14 @@ const getNewscastByUserAndDate = async (userId, date) => {
       },
     });
 
+    console.log(result);
     // print the results
-    if (result.length !== 0) {
+    if (result !== null) {
       console.log('Successfully extracted newscast by user and date');
     }
     return result;
   } catch (err) {
+    console.log(err);
     console.log('Could not get newscast by user and date');
   }
 };

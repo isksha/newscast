@@ -141,7 +141,7 @@ webapp.delete('/newscasts/:userId/:date', async (req, res) => {
 
 // add new transcript & update all required state (if doesn't exist yet)
 webapp.post('/newscasts', async (req, res) => {
-  // curl -i -X POST -d 'userId=iskander' http://localhost:8080/newscasts
+  // curl -i -X POST -d 'userId=iskander&date=07-02-2023' http://localhost:8080/newscasts
   console.log('Started generating transcript');
   const exists = await dbLib.getNewscastByUserAndDate(req.body.userId, new Date(req.body.date));
   if (exists) {
