@@ -97,26 +97,21 @@ const postFileFromBinary = async (bucketName, audio, userId, date) => {
 };
 
 const getFile = async (bucketName, fileId, extension) => {
-  try {
-    const db = await getDB(process.env.MONGO_DB_NAME);
-    const bucket = new GridFSBucket(db, { bucketName });
-    const mkdir = promisify(fs.mkdir);
-    await mkdir('artifacts', { recursive: true });
+  const db = await getDB(process.env.MONGO_DB_NAME);
+  const bucket = new GridFSBucket(db, { bucketName });
+  const mkdir = promisify(fs.mkdir);
+  await mkdir('artifacts', { recursive: true });
 
-    const _id = new ObjectId(fileId);
-    const file = await db.collection(`${bucketName}.files`).findOne({ _id });
+  const _id = new ObjectId(fileId);
+  const file = await db.collection(`${bucketName}.files`).findOne({ _id });
 
-    const fileName = `${fileId}.${extension}`;
-    const filePath = `./artifacts/${fileName}`;
+  const fileName = `${fileId}.${extension}`;
+  const filePath = `./artifacts/${fileName}`;
 
-    await bucket.openDownloadStream(_id)
-      .pipe(fs.createWriteStream(filePath), { flags: 'w' });
-    console.log(`File ${fileName} downloaded successfully`);
-    return fileName;
-  } catch (err) {
-    console.log('Could not find file');
-    return null;
-  }
+  await bucket.openDownloadStream(_id)
+    .pipe(fs.createWriteStream(filePath), { flags: 'w' });
+  console.log(`File ${fileName} downloaded successfully`);
+  return fileName;
 };
 
 const deleteFile = async (bucketName, fileId) => {
