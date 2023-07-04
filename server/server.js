@@ -193,10 +193,11 @@ webapp.get('/temp/audio/:filename', async (req, res) => {
     const localFilePath = `./artifacts/${await gridfsLib.getMP3(req.params.filename)}`;
 
     const exists = await waitForFileExists(localFilePath);
-
+    if (!exists) {
+      throw new Error('File does not exist');
+    }
     res.setHeader('Content-Type', 'audio/mpeg');
     const fileStream = fs.createReadStream(localFilePath);
-    fileStream.on('error', (error) => { throw error; });
     fileStream.pipe(res);
   } catch (e) {
     return res.json({ msg: 'Error while retrieving audio' });
