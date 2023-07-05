@@ -60,7 +60,7 @@ const addUser = async (userId, firstName, lastName, password) => {
 
     const result = await db.collection(process.env.MONGO_USERS_COLLECTION).insertOne(newUser);
     // print the results
-    console.log(`add user: ${JSON.stringify(result)}`);
+    console.log(`add user: ${userId}`);
     return result;
   } catch (err) {
     console.log('Could not add user');
@@ -74,7 +74,7 @@ const getUser = async (userId) => {
 
     const result = await db.collection(process.env.MONGO_USERS_COLLECTION).findOne({ _id: userId });
     // print the results
-    console.log(`find user: ${JSON.stringify(result)}`);
+    console.log(`find user: ${userId}`);
     return result;
   } catch (err) {
     console.log('Could not find user');
@@ -101,23 +101,36 @@ const updateUser = async (userId, firstName, lastName, password) => {
     });
 
     // print the results
-    console.log(`update user: ${JSON.stringify(result)}`);
+    console.log(`update user: ${userId}`);
     return result;
   } catch (err) {
     console.log(`couldn't update user: ${err}`);
   }
 };
 
-// TODO: delete all transcripts of that user
 const deleteUser = async (userId) => {
   // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
 
-    const result = await db.collection(process.env.MONGO_USERS_COLLECTION).deleteOne({ _id: userId });
+    let deletedUser;
+    try {
+      deletedUser = await db.collection(process.env.MONGO_USERS_COLLECTION).deleteOne({ _id: userId });
+      const arr = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).find({ userId }).toArray();
+
+      // delete all transcripts associated with this user
+      for (let i = 0; i < arr.length; i++) {
+        await gridfsLib.deleteMP3(arr[i].mp3Url);
+        await gridfsLib.deleteJPEG(arr[i].imageUrl);
+        await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).deleteOne({ _id: arr[i]._id });
+      }
+    } catch (err) {
+      console.log('Could not delete user');
+    }
+
     // print the results
-    console.log(`delete user: ${JSON.stringify(result)}`);
-    return result;
+    console.log(`delete user: ${userId}`);
+    return deletedUser;
   } catch (err) {
     console.log('Could not find user');
   }
