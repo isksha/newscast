@@ -37,26 +37,6 @@ const getDB = async (database) => {
   return MongoConnection.db(database);
 };
 
-/**
-   *
-   * Close the mongodb connection
-   */
-const closeMongoDBConnection = async () => {
-  await MongoConnection.close();
-};
-
-/* --------------------- Image operations ---------------------*/
-
-const postJPEG = async (url, userId, date) => await postFileFromUrl(process.env.MONGO_GRIDFS_JPG_BUCKET, url, userId, date);
-const getJPEG = async (fileId) => await getFile(process.env.MONGO_GRIDFS_JPG_BUCKET, fileId, 'jpg');
-const deleteJPEG = async (fileId) => await deleteFile(process.env.MONGO_GRIDFS_JPG_BUCKET, fileId);
-
-/* --------------------- MP3 operations -----------------------*/
-
-const postMP3 = async (url, userId, date) => await postFileFromBinary(process.env.MONGO_GRIDFS_MP3_BUCKET, url, userId, date);
-const getMP3 = async (fileId) => await getFile(process.env.MONGO_GRIDFS_MP3_BUCKET, fileId, 'mp3');
-const deleteMP3 = async (fileId) => await deleteFile(process.env.MONGO_GRIDFS_MP3_BUCKET, fileId);
-
 /* --------------------- Unified CRUD -------------------------*/
 
 const postFileFromUrl = async (bucketName, url, userId, date) => {
@@ -135,9 +115,9 @@ const getFile = async (bucketName, fileId, extension) => {
     const file = await db.collection(`${bucketName}.files`).findOne({ _id });
 
     const fileName = `${uuidv4()}.${extension}`;
-    const filePath = `artifacts/${fileName}`;
+    const filePath = `./artifacts/${fileName}`;
 
-    bucket.openDownloadStream(_id)
+    await bucket.openDownloadStream(_id)
       .pipe(fs.createWriteStream(filePath), { flags: 'w' });
     console.log(`File ${fileName} downloaded successfully`);
     return fileName;
@@ -160,6 +140,18 @@ const deleteFile = async (bucketName, fileId) => {
     console.log('Could not find file');
   }
 };
+
+/* --------------------- Image operations ---------------------*/
+
+const postJPEG = async (url, userId, date) => postFileFromUrl(process.env.MONGO_GRIDFS_JPG_BUCKET, url, userId, date);
+const getJPEG = async (fileId) => (async () => getFile(process.env.MONGO_GRIDFS_JPG_BUCKET, fileId, 'jpg'))();
+const deleteJPEG = async (fileId) => deleteFile(process.env.MONGO_GRIDFS_JPG_BUCKET, fileId);
+
+/* --------------------- MP3 operations -----------------------*/
+
+const postMP3 = async (url, userId, date) => postFileFromBinary(process.env.MONGO_GRIDFS_MP3_BUCKET, url, userId, date);
+const getMP3 = async (fileId) => (async () => getFile(process.env.MONGO_GRIDFS_MP3_BUCKET, fileId, 'mp3'))();
+const deleteMP3 = async (fileId) => deleteFile(process.env.MONGO_GRIDFS_MP3_BUCKET, fileId);
 
 // --------------- DEVELOPER FUNCTIONS ---------------- //
 

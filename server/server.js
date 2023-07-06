@@ -43,8 +43,9 @@ webapp.get('/', async (req, res) => {
   /**
    * uncomment to get an image using an existing url
    */
-  await gridfsLib.getJPEG('649920bb4fc1e85d6e6d3871');
-  await gridfsLib.getMP3('649920c14fc1e85d6e6d387f');
+  const ress = await gridfsLib.getJPEG('649920bb4fc1e85d6e6d3871');
+  const resss = await gridfsLib.getMP3('649920c14fc1e85d6e6d387f');
+  console.log(`${resss}, ${ress} eaz`);
 
   /**
    * uncomment to easily go through the pipeline of generating and storing a newscast
@@ -120,6 +121,7 @@ webapp.get('/newscasts/:userId', async (req, res) => {
 // get user's transcript by date
 webapp.get(`/newscasts/:userId/:date/${constants.REST_GET_BY_DATE}`, async (req, res) => {
   // curl -i -X GET http://localhost:8080/newscasts/iskander/2023-06-17/0
+  //for windows: Invoke-WebRequest -Method GET -Uri "http://localhost:8080/newscasts/iskander/2023-06-29/0"
   const ret = await dbLib.getNewscastByUserAndDate(req.params.userId, new Date(req.params.date));
   res.json(ret);
 });
@@ -141,6 +143,7 @@ webapp.delete('/newscasts/:userId/:date', async (req, res) => {
 // add new transcript & update all required state (if doesn't exist yet)
 webapp.post('/newscasts', async (req, res) => {
   // curl -i -X POST -d 'userId=iskander' http://localhost:8080/newscasts
+  //for windows: Invoke-WebRequest -Method POST -Body "userId=iskander" -Uri "http://localhost:8080/newscasts"
   console.log('Started generating transcript');
   const exists = await dbLib.getNewscastByUserAndDate(req.body.userId, new Date(req.body.date));
   if (exists) {
@@ -188,20 +191,16 @@ webapp.put('/newscasts', async (req, res) => {
 /* --------------------- GRIDFS resource endpoints ---------------------*/
 
 // retrieve image by uuid
-webapp.get('/temp/img/:filename', (req, res) => {
-  const filePath = `./artifacts/${req.params.filename}`;
+webapp.get('/temp/img/:filename', async (req, res) => {
+  const fileUidd = await gridfsLib.getJPEG(req.params.filename);
+  console.log('fileUidd', fileUidd);
+  const localFilePath = `./artifacts/${fileUidd}`;
 
+  const exists = await waitForFileExists(localFilePath);
   res.setHeader('Content-Type', 'image/jpeg');
 
-  if (!fs.existsSync(filePath)) {
-    console.log('File not found');
-    res.status(404).send('File not found');
-    return;
-  }
-
-  const fileStream = fs.createReadStream(filePath);
+  const fileStream = fs.createReadStream(localFilePath);
   fileStream.pipe(res);
-
   // // delete temp image after serving
   // fileStream.on('close', () => {
   //   fs.unlink(filePath, (err) => {
@@ -240,6 +239,17 @@ webapp.get('/temp/audio/:filename', (req, res) => {
   //   });
   // });
 });
+
+// helpers
+
+async function waitForFileExists(filePath, currentTime = 0, timeout = 5000) {
+  if (fs.existsSync(filePath)) return true;
+  if (currentTime === timeout) return false;
+  // wait for 1 second
+  await new Promise((resolve, reject) => setTimeout(() => resolve(true), 1000));
+  // waited for 1 second
+  return waitForFileExists(filePath, currentTime + 1000, timeout);
+}
 
 // export the webapp
 module.exports = webapp;
