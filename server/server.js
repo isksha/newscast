@@ -43,9 +43,8 @@ webapp.get('/', async (req, res) => {
   /**
    * uncomment to get an image using an existing url
    */
-  const ress = await gridfsLib.getJPEG('649920bb4fc1e85d6e6d3871');
-  const resss = await gridfsLib.getMP3('649920c14fc1e85d6e6d387f');
-  console.log(`${resss}, ${ress} eaz`);
+  const ress = await gridfsLib.getJPEG('64a1838216c3b82ae4e3537a');
+  const resss = await gridfsLib.getMP3('64a1838816c3b82ae4e35388');
 
   /**
    * uncomment to easily go through the pipeline of generating and storing a newscast
@@ -142,28 +141,16 @@ webapp.delete('/newscasts/:userId/:date', async (req, res) => {
 
 // add new transcript & update all required state (if doesn't exist yet)
 webapp.post('/newscasts', async (req, res) => {
-  // curl -i -X POST -d 'userId=iskander' http://localhost:8080/newscasts
-  //for windows: Invoke-WebRequest -Method POST -Body "userId=iskander" -Uri "http://localhost:8080/newscasts"
+  // curl -i -X POST -d 'userId=iskander&date=07-02-2023' http://localhost:8080/newscasts
+  //for windows: Invoke-WebRequest -Method POST -Body "userId=iskander&date=07-02-2023" -Uri "http://localhost:8080/newscasts"
   console.log('Started generating transcript');
   const exists = await dbLib.getNewscastByUserAndDate(req.body.userId, new Date(req.body.date));
   if (exists) {
     return res.json({ message: 'Transcript already exists' });
   }
 
-  const startTime = performance.now();
-
-  const newscastStr = await newscastApi.generateTranscript();
-  const tags = await newscastApi.generateTags(newscastStr);
-  const imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
-  const gridfsImageId = await gridfsLib.postJPEG(imageUrl, req.body.userId, new Date());
-  const mp3File = await newscastApi.generateTtsMp3(newscastStr);
-  const gridfsMp3Id = await gridfsLib.postMP3(mp3File, req.body.userId, new Date(req.body.date));
-  const ret = await dbLib.addNewscast(req.body.userId, tags, newscastStr, gridfsImageId, gridfsMp3Id, new Date());
-
-  const endTime = performance.now();
-  console.log(`Generated transcript in ${endTime - startTime} ms`);
-
-  res.json(ret);
+  const addTranscriptResult = await generateNewscastRoutine(req.body.userId, new Date(req.body.date));
+  return res.json(addTranscriptResult);
 });
 
 // update transcript
@@ -176,71 +163,50 @@ webapp.put('/newscasts', async (req, res) => {
     return res.json({ message: 'Could not update non-existent transcript' });
   }
 
-  console.log('Started generating transcript');
-  const newscastStr = await newscastApi.generateTranscript();
-  const tags = await newscastApi.generateTags(newscastStr);
-  const imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
-  const gridfsImageId = await gridfsLib.postJPEG(imageUrl, req.body.userId, new Date(req.body.date));
-  const mp3File = await newscastApi.generateTtsMp3(newscastStr);
-  const gridfsMp3Id = await gridfsLib.postMP3(mp3File, req.body.userId, new Date(req.body.date));
-  // TODO: add mp3 to db
-  const addTranscriptResult = await dbLib.addNewscast(req.body.userId, tags, newscastStr, gridfsImageId, new Date(req.body.date));
-  res.json(addTranscriptResult);
+  console.log('Started generating updated transcript');
+  const addTranscriptResult = await generateNewscastRoutine(req.body.userId, new Date(req.body.date));
+  return res.json(addTranscriptResult);
 });
 
 /* --------------------- GRIDFS resource endpoints ---------------------*/
 
 // retrieve image by uuid
-webapp.get('/temp/img/:filename', async (req, res) => {
-  const fileUidd = await gridfsLib.getJPEG(req.params.filename);
-  console.log('fileUidd', fileUidd);
-  const localFilePath = `./artifacts/${fileUidd}`;
+webapp.get('/temp/image/:filename', async (req, res) => {
+  try {
+    const localFilePath = `./artifacts/${req.params.filename}`;
+    await gridfsLib.getJPEG(req.params.filename);
 
-  const exists = await waitForFileExists(localFilePath);
-  res.setHeader('Content-Type', 'image/jpeg');
+    const exists = await waitForFileExists(localFilePath);
+    if (!exists) {
+      throw new Error('File does not exist');
+    }
+    res.setHeader('Content-Type', 'image/jpeg');
 
-  const fileStream = fs.createReadStream(localFilePath);
-  fileStream.pipe(res);
-  // // delete temp image after serving
-  // fileStream.on('close', () => {
-  //   fs.unlink(filePath, (err) => {
-  //     if (err) {
-  //       console.log('Error deleting file:', err);
-  //     } else {
-  //       console.log('File deleted successfully');
-  //     }
-  //   });
-  // });
+    const fileStream = fs.createReadStream(localFilePath);
+    fileStream.pipe(res);
+  } catch (e) {
+    return res.json({ msg: 'Error while retrieving image' });
+  }
 });
 
 // retrieve mp3 by uuid
-webapp.get('/temp/audio/:filename', (req, res) => {
-  const filePath = `./artifacts/${req.params.filename}`;
+webapp.get('/temp/audio/:filename', async (req, res) => {
+  try {
+    const localFilePath = `./artifacts/${await gridfsLib.getMP3(req.params.filename)}`;
 
-  res.setHeader('Content-Type', 'audio/mpeg');
-
-  if (!fs.existsSync(filePath)) {
-    console.log('File not found');
-    res.status(404).send('File not found');
-    return;
+    const exists = await waitForFileExists(localFilePath);
+    if (!exists) {
+      throw new Error('File does not exist');
+    }
+    res.setHeader('Content-Type', 'audio/mpeg');
+    const fileStream = fs.createReadStream(localFilePath);
+    fileStream.pipe(res);
+  } catch (e) {
+    return res.json({ msg: 'Error while retrieving audio' });
   }
-
-  const fileStream = fs.createReadStream(filePath);
-  fileStream.pipe(res);
-
-  // delete temp image after serving
-  // fileStream.on('close', () => {
-  //   fs.unlink(filePath, (err) => {
-  //     if (err) {
-  //       console.log('Error deleting file:', err);
-  //     } else {
-  //       console.log('File deleted successfully');
-  //     }
-  //   });
-  // });
 });
 
-// helpers
+/* --------------------- Internal helpers ---------------------*/
 
 async function waitForFileExists(filePath, currentTime = 0, timeout = 5000) {
   if (fs.existsSync(filePath)) return true;
@@ -249,6 +215,46 @@ async function waitForFileExists(filePath, currentTime = 0, timeout = 5000) {
   await new Promise((resolve, reject) => setTimeout(() => resolve(true), 1000));
   // waited for 1 second
   return waitForFileExists(filePath, currentTime + 1000, timeout);
+}
+
+async function generateNewscastRoutine(userId, date) {
+  let newscastStr; let tags; let imageUrl; let mp3File; let gridfsImageId; let gridfsMp3Id; let
+    addTranscriptResult;
+
+  const startTime = performance.now();
+
+  try {
+    newscastStr = await newscastApi.generateTranscript();
+    tags = await newscastApi.generateTags(newscastStr);
+    imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
+    mp3File = await newscastApi.generateTtsMp3(newscastStr);
+    gridfsImageId = await gridfsLib.postJPEG(imageUrl, userId, new Date(date));
+  } catch (e) {
+    console.log('Error during transcript generation stage'); // not technically just generation phase but if image upload fails nothing needs to be purged
+    return;
+  }
+
+  try {
+    gridfsMp3Id = await gridfsLib.postMP3(mp3File, userId, new Date(date));
+  } catch (e) {
+    gridfsLib.deleteJPEG(gridfsImageId);
+    console.log('Error during mp3 upload');
+    return;
+  }
+
+  try {
+    addTranscriptResult = await dbLib.addNewscast(userId, tags, newscastStr, gridfsImageId, gridfsMp3Id, new Date(date));
+  } catch (e) {
+    gridfsLib.deleteJPEG(gridfsImageId);
+    gridfsLib.deleteMP3(gridfsMp3Id);
+    console.log('Error during db insertion');
+    return;
+  }
+
+  const endTime = performance.now();
+  console.log(`Generated transcript in ${endTime - startTime} ms`);
+
+  return addTranscriptResult;
 }
 
 // export the webapp

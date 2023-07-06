@@ -50,22 +50,16 @@ async function convertTagsToImage(tags) {
 }
 
 async function generateTtsMp3(text) {
-  try {
-    // Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information
-    const tts = new TextToSpeechClient();
-    const ttsRequest = {
-      input: { text },
-      voice: { languageCode: 'en-US', ssmlGender: 'FEMALE' },
-      audioConfig: { audioEncoding: 'MP3' },
-    };
+  const tts = new TextToSpeechClient();
+  const ttsRequest = {
+    input: { text },
+    voice: { languageCode: 'en-US', ssmlGender: 'FEMALE' },
+    audioConfig: { audioEncoding: 'MP3' },
+  };
 
-    const [ttsResponse] = await tts.synthesizeSpeech(ttsRequest);
-    console.log('5/7 Generated mp3 successfully');
-    return ttsResponse.audioContent;
-  } catch (err) {
-    console.log(`Failed to generate TTS mp3 ${err}`);
-    return null;
-  }
+  const [ttsResponse] = await tts.synthesizeSpeech(ttsRequest);
+  console.log('4/7 Generated mp3 successfully');
+  return ttsResponse.audioContent;
 }
 
 module.exports = {
