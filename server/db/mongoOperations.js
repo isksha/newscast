@@ -138,7 +138,7 @@ const deleteUser = async (userId) => {
 
 /* --------------------- CRUD for transcripts ---------------------*/
 
-const addNewscast = async (userId, tags, transcript, imageUrl, mp3Url, date) => {
+const addNewscast = async (userId, tags, transcript, imageUrl, mp3Url, startDate, endDate) => {
   // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
@@ -149,7 +149,8 @@ const addNewscast = async (userId, tags, transcript, imageUrl, mp3Url, date) => 
       transcript,
       imageUrl,
       mp3Url,
-      date,
+      startDate,
+      endDate,
     };
     const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).insertOne(newTranscript);
     // print the results
@@ -161,22 +162,31 @@ const addNewscast = async (userId, tags, transcript, imageUrl, mp3Url, date) => 
 };
 
 // date given as Date() object
-const getNewscastByUserAndDate = async (userId, date) => {
+const getNewscastByUserAndDate = async (userId, startDate, endDate) => {
   // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
 
-    // specify the range to be one day
-    const startDate = new Date(date);
-    startDate.setHours(0, 0, 0, 0);
-    const endDate = new Date(date);
-    endDate.setHours(23, 59, 59, 999);
+    // specify the ranges to be one day
+    const startStartDate = new Date(startDate);
+    startStartDate.setHours(0, 0, 0, 0);
+    const startEndDate = new Date(startDate);
+    startEndDate.setHours(23, 59, 59, 999);
+
+    const endStartDate = new Date(endDate);
+    endStartDate.setHours(0, 0, 0, 0);
+    const endEndDate = new Date(endDate);
+    endEndDate.setHours(23, 59, 59, 999);
 
     const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).findOne({
       userId,
-      date: {
-        $gte: startDate,
-        $lte: endDate,
+      startDate: {
+        $gte: startStartDate,
+        $lte: startEndDate,
+      },
+      endDate: {
+        $gte: endStartDate,
+        $lte: endEndDate,
       },
     });
 
@@ -256,22 +266,31 @@ const updateNewscast = async (userId, topic, date, newTranscript) => {
   }
 };
 
-const deleteNewscast = async (userId, date) => {
+const deleteNewscast = async (userId, startDate, endDate) => {
   // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
 
-    // specify the range to be one day
-    const startDate = new Date(date);
-    startDate.setHours(0, 0, 0, 0);
-    const endDate = new Date(date);
-    endDate.setHours(23, 59, 59, 999);
+    // specify the ranges to be one day
+    const startStartDate = new Date(startDate);
+    startStartDate.setHours(0, 0, 0, 0);
+    const startEndDate = new Date(startDate);
+    startEndDate.setHours(23, 59, 59, 999);
+
+    const endStartDate = new Date(endDate);
+    endStartDate.setHours(0, 0, 0, 0);
+    const endEndDate = new Date(endDate);
+    endEndDate.setHours(23, 59, 59, 999);
 
     const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).findOneAndDelete({
       userId,
-      date: {
-        $gte: startDate,
-        $lte: endDate,
+      startDate: {
+        $gte: startStartDate,
+        $lte: startEndDate,
+      },
+      endDate: {
+        $gte: endStartDate,
+        $lte: endEndDate,
       },
     });
 

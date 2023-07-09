@@ -43,8 +43,8 @@ webapp.get('/', async (req, res) => {
   /**
    * uncomment to get an image using an existing url
    */
-  const ress = await gridfsLib.getJPEG('64a1838216c3b82ae4e3537a');
-  const resss = await gridfsLib.getMP3('64a1838816c3b82ae4e35388');
+  // const ress = await gridfsLib.getJPEG('64a1838216c3b82ae4e3537a');
+  // const resss = await gridfsLib.getMP3('64a1838816c3b82ae4e35388');
 
   /**
    * uncomment to easily go through the pipeline of generating and storing a newscast
@@ -118,43 +118,48 @@ webapp.get('/newscasts/:userId', async (req, res) => {
 });
 
 // get user's transcript by date
-webapp.get(`/newscasts/:userId/:date/${constants.REST_GET_BY_DATE}`, async (req, res) => {
-  // curl -i -X GET http://localhost:8080/newscasts/iskander/2023-06-17/0
-  const ret = await dbLib.getNewscastByUserAndDate(req.params.userId, new Date(req.params.date));
+webapp.get('/newscasts/:userId/:startDate/:endDate', async (req, res) => {
+  // curl -i -X GET http://localhost:8080/newscasts/iskander/2023-06-17/2023-06-31
+  const ret = await dbLib.getNewscastByUserAndDate(req.params.userId, new Date(req.params.startDate), new Date(req.params.endDate));
   res.json(ret);
 });
 
 // get all transcripts by user and tags
-webapp.get(`/newscasts/:userId/:tags/${constants.REST_GET_BY_TAGS}`, async (req, res) => {
-  // curl -i -X GET http://localhost:8080/newscasts/iskander/sports,general/1
+webapp.get('/newscasts/:userId/:tags/', async (req, res) => {
+  // curl -i -X GET http://localhost:8080/newscasts/iskander/sports,general
   const ret = await dbLib.getNewscastsByUserAndTags(req.params.userId, req.params.tags);
   res.json(ret);
 });
 
-// delete user's transcript by date and topic
-webapp.delete('/newscasts/:userId/:date', async (req, res) => {
-  // curl -i -X DELETE http://localhost:8080/newscasts/iskander/2023-05-25
-  const ret = await dbLib.deleteNewscast(req.params.userId, new Date(req.params.date));
+// delete user's transcript by date and user
+webapp.delete('/newscasts/:userId/:startDate/:endDate', async (req, res) => {
+  // curl -i -X DELETE http://localhost:8080/newscasts/iskander/2023-05-25/2023-06-01
+  const ret = await dbLib.deleteNewscast(req.params.userId, new Date(req.params.startDate), new Date(req.params.endDate));
   res.json(ret);
 });
 
 // add new transcript & update all required state (if doesn't exist yet)
 webapp.post('/newscasts', async (req, res) => {
-  // curl -i -X POST -d 'userId=iskander&date=07-02-2023' http://localhost:8080/newscasts
+  // curl -i -X POST -d 'userId=iskander&startDate=07-02-2023&endDate=07-09-2023' http://localhost:8080/newscasts
   console.log('Started generating transcript');
-  const exists = await dbLib.getNewscastByUserAndDate(req.body.userId, new Date(req.body.date));
+
+  if (req.body.endDate === undefined) {
+    req.body.endDate = new Date();
+  }
+
+  const exists = await dbLib.getNewscastByUserAndDate(req.body.userId, new Date(req.body.startDate), new Date(req.body.endDate));
   if (exists) {
     return res.json({ message: 'Transcript already exists' });
   }
 
-  const addTranscriptResult = await generateNewscastRoutine(req.body.userId, new Date(req.body.date));
+  const addTranscriptResult = await generateNewscastRoutine(req.body.userId, req.body.startDate, req.body.endDate);
   return res.json(addTranscriptResult);
 });
 
 // update transcript
 webapp.put('/newscasts', async (req, res) => {
-  // curl -i -X PUT -d 'userId=iskander&date=2023-06-21' http://localhost:8080/newscasts
-  const deleted = await dbLib.deleteNewscast(req.body.userId, new Date(req.body.date));
+  // curl -i -X PUT -d 'userId=iskander&startDate=2023-06-21&endDate=2023-06-23' http://localhost:8080/newscasts
+  const deleted = await dbLib.deleteNewscast(req.body.userId, new Date(req.body.startDate), new Date(req.body.endDate));
 
   if (deleted === null) {
     console.log('Could not update non-existent transcript');
@@ -162,7 +167,7 @@ webapp.put('/newscasts', async (req, res) => {
   }
 
   console.log('Started generating updated transcript');
-  const addTranscriptResult = await generateNewscastRoutine(req.body.userId, new Date(req.body.date));
+  const addTranscriptResult = await generateNewscastRoutine(req.body.userId, req.body.startDate, req.body.endDate);
   return res.json(addTranscriptResult);
 });
 
@@ -215,25 +220,31 @@ async function waitForFileExists(filePath, currentTime = 0, timeout = 5000) {
   return waitForFileExists(filePath, currentTime + 1000, timeout);
 }
 
-async function generateNewscastRoutine(userId, date) {
+async function generateNewscastRoutine(userId, startDate, endDate) {
   let newscastStr; let tags; let imageUrl; let mp3File; let gridfsImageId; let gridfsMp3Id; let
     addTranscriptResult;
 
   const startTime = performance.now();
 
+  if (endDate === undefined) {
+    const today = new Date();
+    const options = { month: '2-digit', day: '2-digit', year: 'numeric' };
+    endDate = today.toLocaleDateString('en-US', options);
+  }
+
   try {
-    newscastStr = await newscastApi.generateTranscript();
+    newscastStr = await newscastApi.generateTranscript(startDate, endDate);
     tags = await newscastApi.generateTags(newscastStr);
     imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
     mp3File = await newscastApi.generateTtsMp3(newscastStr);
-    gridfsImageId = await gridfsLib.postJPEG(imageUrl, userId, new Date(date));
+    gridfsImageId = await gridfsLib.postJPEG(imageUrl, userId, new Date(startDate), new Date(endDate));
   } catch (e) {
     console.log('Error during transcript generation stage'); // not technically just generation phase but if image upload fails nothing needs to be purged
     return;
   }
 
   try {
-    gridfsMp3Id = await gridfsLib.postMP3(mp3File, userId, new Date(date));
+    gridfsMp3Id = await gridfsLib.postMP3(mp3File, userId, new Date(startDate), new Date(endDate));
   } catch (e) {
     gridfsLib.deleteJPEG(gridfsImageId);
     console.log('Error during mp3 upload');
@@ -241,7 +252,7 @@ async function generateNewscastRoutine(userId, date) {
   }
 
   try {
-    addTranscriptResult = await dbLib.addNewscast(userId, tags, newscastStr, gridfsImageId, gridfsMp3Id, new Date(date));
+    addTranscriptResult = await dbLib.addNewscast(userId, tags, newscastStr, gridfsImageId, gridfsMp3Id, new Date(startDate), new Date(endDate));
   } catch (e) {
     gridfsLib.deleteJPEG(gridfsImageId);
     gridfsLib.deleteMP3(gridfsMp3Id);

@@ -16,7 +16,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 
-def fetch_emails(start, end):
+def fetch_emails():
     """Shows basic usage of the Gmail API.
     Lists the user's Gmail labels.
     # """
@@ -47,9 +47,12 @@ def fetch_emails(start, end):
 
     try:
         # Call the Gmail API
+        start_date = datetime.strptime(
+            sys.argv[1], '%m-%d-%Y').strftime("%Y/%m/%d")
+        end_date = datetime.strptime(
+            sys.argv[2], '%m-%d-%Y').strftime("%Y/%m/%d") if len(sys.argv) > 2 else date.today().strftime("%Y/%m/%d")
         service = build('gmail', 'v1', credentials=creds)
-        query = '"listid" OR "newsletter" AND after:{}'.format(
-            date.today().strftime("%Y/%m/%d"))
+        query = f'"listid" OR "newsletter" AND before:{end_date} AND after:{start_date}'
         newsletter_ids = service.users().messages().list(
             userId='me', q=query).execute().get('messages', [])
 

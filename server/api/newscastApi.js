@@ -4,8 +4,8 @@ const { Configuration, OpenAIApi } = require('openai');
 const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
 const constants = require('../constants/newscastConstants');
 
-const generateTranscript = async () => new Promise((resolve, reject) => {
-  const cmd = 'cd api &&\ python3 generate_transcript.py';
+const generateTranscript = async (startDate, endDate) => new Promise((resolve, reject) => {
+  const cmd = `cd api &&\ python3 generate_transcript.py ${startDate} ${endDate}`;
   exec(
     cmd.replace(/\n/g, '\\\n'),
     (error, stdout, stderr) => {

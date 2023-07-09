@@ -38,17 +38,19 @@ const getDB = async (database) => {
 
 /* --------------------- Unified CRUD -------------------------*/
 
-const postFileFromUrl = async (bucketName, url, userId, date) => {
+const postFileFromUrl = async (bucketName, url, userId, startDate, endDate) => {
   const db = await getDB(process.env.MONGO_DB_NAME);
   const bucket = new GridFSBucket(db, { bucketName });
   const response = await axios.get(url, { responseType: 'stream' });
 
-  const month = date.getMonth() + 1; // zero index in JS
-  const day = date.getDate();
-  const year = date.getFullYear();
+  const startMonth = startDate.getMonth() + 1; // zero index in JS
+  const startDay = startDate.getDate();
+  const startYear = startDate.getFullYear();
   const extension = 'jpg';
 
-  const uploadStream = bucket.openUploadStream(`${userId}_${month}_${day}_${year}.${extension}`);
+  const endDateStr = endDate ? `${endDate.getMonth() + 1}_${endDate.getDate()}_${endDate.getFullYear()}` : '';
+
+  const uploadStream = bucket.openUploadStream(`${userId}_${startMonth}_${startDay}_${startYear}-${endDateStr}.${extension}`);
   response.data.pipe(uploadStream);
 
   const fileId = await new Promise((resolve, reject) => {
@@ -66,16 +68,18 @@ const postFileFromBinary = async (bucketName, audio, userId, date) => {
     const db = await getDB(process.env.MONGO_DB_NAME);
     const bucket = new GridFSBucket(db, { bucketName });
 
-    const month = date.getMonth() + 1; // zero index in JS
-    const day = date.getDate();
-    const year = date.getFullYear();
+    const startMonth = startDate.getMonth() + 1; // zero index in JS
+    const startDay = startDate.getDate();
+    const startYear = startDate.getFullYear();
     const extension = 'mp3';
+
+    const endDateStr = endDate ? `${endDate.getMonth() + 1}_${endDate.getDate()}_${endDate.getFullYear()}` : '';
 
     const audioStream = new Readable();
     audioStream.push(audio);
     audioStream.push(null); // signify the end of the stream
 
-    const uploadStream = bucket.openUploadStream(`${userId}_${month}_${day}_${year}.${extension}`, {
+    const uploadStream = bucket.openUploadStream(`${userId}_${startMonth}_${startDay}_${startYear}-${endDateStr}.${extension}`, {
       contentType: 'audio/mpeg',
     });
 
@@ -130,13 +134,13 @@ const deleteFile = async (bucketName, fileId) => {
 
 /* --------------------- Image operations ---------------------*/
 
-const postJPEG = async (url, userId, date) => await postFileFromUrl(process.env.MONGO_GRIDFS_JPG_BUCKET, url, userId, date);
+const postJPEG = async (url, userId, startDate, endDate) => await postFileFromUrl(process.env.MONGO_GRIDFS_JPG_BUCKET, url, userId, startDate, endDate);
 const getJPEG = async (fileId) => (async () => await getFile(process.env.MONGO_GRIDFS_JPG_BUCKET, fileId, 'jpg'))();
 const deleteJPEG = async (fileId) => await deleteFile(process.env.MONGO_GRIDFS_JPG_BUCKET, fileId);
 
 /* --------------------- MP3 operations -----------------------*/
 
-const postMP3 = async (url, userId, date) => await postFileFromBinary(process.env.MONGO_GRIDFS_MP3_BUCKET, url, userId, date);
+const postMP3 = async (url, userId, date, startDate, endDate) => await postFileFromBinary(process.env.MONGO_GRIDFS_MP3_BUCKET, url, userId, startDate, endDate);
 const getMP3 = async (fileId) => (async () => await getFile(process.env.MONGO_GRIDFS_MP3_BUCKET, fileId, 'mp3'))();
 const deleteMP3 = async (fileId) => await deleteFile(process.env.MONGO_GRIDFS_MP3_BUCKET, fileId);
 
