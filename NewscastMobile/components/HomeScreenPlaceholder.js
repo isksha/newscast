@@ -5,9 +5,16 @@ import { useEffect, useState } from 'react';
 // import { getJPEG } from 'server/db/gridfsOperations';
 // import { getMP3 } from '../../server/db/gridfsOperations';
 
-function HomeScreen({ navigation }) {
-    const [mongoObjs, setMongoObjs] = useState([]);
+// require('dotenv').config();
+// import { config } from 'dotenv';
+// config({ path: '../../.env' });
+// const ip = process.env.IP;
 
+
+function HomeScreen({ navigation }) {
+    
+    const [mongoObjs, setMongoObjs] = useState([]);
+    // console.log(ip);
     useEffect(() => {
         // axios.get('http://localhost:8080/newscasts/iskander/')
         axios.get(`http://${ip}:8080/newscasts/iskander/`)
@@ -31,12 +38,11 @@ function HomeScreen({ navigation }) {
                         <Image
                             style={{ width: 100, height: 10 }}
                             // source={{ uri: `http://${ip}:8080/temp/img/${filename}` }}
-                            source={{uri: `http://${ip}:8080/temp/img/649dd0754ebffa9faa53a06b`}}
+                            source={{uri: `http://${ip}:8080/temp/image/649dd0754ebffa9faa53a06b`}}
                         />
 
                         <Text>{item.date}</Text>
                     </View>
-
                 );
             })}
             <Button
