@@ -105,13 +105,12 @@ const getFile = async (bucketName, fileId, extension) => {
   const _id = new ObjectId(fileId);
   const file = await db.collection(`${bucketName}.files`).findOne({ _id });
 
-  const fileName = `${fileId}.${extension}`;
-  const filePath = `./artifacts/${fileName}`;
+  if (file === null) {
+    throw new Error(`File ${_id} does not exist`);
+  }
 
-  await bucket.openDownloadStream(_id)
-    .pipe(fs.createWriteStream(filePath), { flags: 'w' });
-  console.log(`File ${fileName} downloaded successfully`);
-  return fileName;
+  console.log(`File ${_id} fetched successfully`);
+  return await bucket.openDownloadStream(_id);
 };
 
 const deleteFile = async (bucketName, fileId) => {
