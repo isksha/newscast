@@ -6,6 +6,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const SHA3 = require('crypto-js/sha3');
+const cache = require('memory-cache');
 const newscastApi = require('./api/newscastApi');
 const constants = require('./constants/newscastConstants');
 const dbLib = require('./db/mongoOperations');
@@ -171,9 +172,15 @@ webapp.put('/newscasts', async (req, res) => {
 // retrieve image by uuid
 webapp.get('/temp/image/:filename', async (req, res) => {
   try {
-    const downloadStream = await gridfsLib.getJPEG(req.params.filename);
     res.setHeader('Content-Type', 'image/jpeg');
-    downloadStream.pipe(res);
+    const cached = cache.get(req.params.filename);
+    if (cached) {
+      console.log('Serving image from cache');
+      res.send(cached);
+    } else {
+      const data = await gridfsLib.getJPEG(req.params.filename);
+      res.send(data);
+    }
   } catch (e) {
     return res.json({ msg: 'Error while retrieving image' });
   }
@@ -183,8 +190,14 @@ webapp.get('/temp/image/:filename', async (req, res) => {
 webapp.get('/temp/audio/:filename', async (req, res) => {
   try {
     res.setHeader('Content-Type', 'audio/mpeg');
-    const downloadStream = await gridfsLib.getMP3(req.params.filename);
-    downloadStream.pipe(res);
+    const cached = cache.get(req.params.filename);
+    if (cached) {
+      console.log('Serving image from cache');
+      res.send(cached);
+    } else {
+      const data = await gridfsLib.getMP3(req.params.filename);
+      res.send(data);
+    }
   } catch (e) {
     return res.json({ msg: 'Error while retrieving audio' });
   }
