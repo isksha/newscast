@@ -3,6 +3,7 @@ const fs = require('fs');
 const axios = require('axios');
 const { promisify } = require('util');
 const { Readable } = require('stream');
+const cache = require('memory-cache');
 require('dotenv').config();
 
 // the mongodb server URL
@@ -105,13 +106,15 @@ const getFile = async (bucketName, fileId, extension) => {
   const _id = new ObjectId(fileId);
   const file = await db.collection(`${bucketName}.files`).findOne({ _id });
 
-  const fileName = `${fileId}.${extension}`;
-  const filePath = `./artifacts/${fileName}`;
+  if (file === null) {
+    throw new Error(`File ${_id} does not exist`);
+  }
 
-  await bucket.openDownloadStream(_id)
-    .pipe(fs.createWriteStream(filePath), { flags: 'w' });
-  console.log(`File ${fileName} downloaded successfully`);
-  return fileName;
+  const downloadStream = await bucket.openDownloadStream(_id);
+  const fileData = await streamToBuffer(downloadStream);
+  cache.put(fileId, fileData, 60 * 60 * 1000);
+  console.log(`File ${_id} fetched successfully`);
+  return fileData;
 };
 
 const deleteFile = async (bucketName, fileId) => {
@@ -148,6 +151,15 @@ const deleteAllDocuments = async (collectionName) => {
   await db.collection(`${collectionName}.chunks`).deleteMany();
   console.log('All gridfs documents deleted');
 };
+
+function streamToBuffer(stream) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    stream.on('data', (chunk) => chunks.push(chunk));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(Buffer.concat(chunks)));
+  });
+}
 
 module.exports = {
   connect,

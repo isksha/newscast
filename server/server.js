@@ -6,6 +6,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const SHA3 = require('crypto-js/sha3');
+const cache = require('memory-cache');
 const newscastApi = require('./api/newscastApi');
 const constants = require('./constants/newscastConstants');
 const dbLib = require('./db/mongoOperations');
@@ -43,8 +44,8 @@ webapp.get('/', async (req, res) => {
   /**
    * uncomment to get an image using an existing url
    */
-  const ress = await gridfsLib.getJPEG('64a1838216c3b82ae4e3537a');
-  const resss = await gridfsLib.getMP3('64a1838816c3b82ae4e35388');
+  // const ress = await gridfsLib.getJPEG('64a1838216c3b82ae4e3537a');
+  // const resss = await gridfsLib.getMP3('64a1838816c3b82ae4e35388');
 
   /**
    * uncomment to easily go through the pipeline of generating and storing a newscast
@@ -173,17 +174,15 @@ webapp.put('/newscasts', async (req, res) => {
 // retrieve image by uuid
 webapp.get('/temp/image/:filename', async (req, res) => {
   try {
-    const localFilePath = `./artifacts/${req.params.filename}`;
-    await gridfsLib.getJPEG(req.params.filename);
-
-    const exists = await waitForFileExists(localFilePath);
-    if (!exists) {
-      throw new Error('File does not exist');
-    }
     res.setHeader('Content-Type', 'image/jpeg');
-
-    const fileStream = fs.createReadStream(localFilePath);
-    fileStream.pipe(res);
+    const cached = cache.get(req.params.filename);
+    if (cached) {
+      console.log('Serving image from cache');
+      res.send(cached);
+    } else {
+      const data = await gridfsLib.getJPEG(req.params.filename);
+      res.send(data);
+    }
   } catch (e) {
     return res.json({ msg: 'Error while retrieving image' });
   }
@@ -192,15 +191,15 @@ webapp.get('/temp/image/:filename', async (req, res) => {
 // retrieve mp3 by uuid
 webapp.get('/temp/audio/:filename', async (req, res) => {
   try {
-    const localFilePath = `./artifacts/${await gridfsLib.getMP3(req.params.filename)}`;
-
-    const exists = await waitForFileExists(localFilePath);
-    if (!exists) {
-      throw new Error('File does not exist');
-    }
     res.setHeader('Content-Type', 'audio/mpeg');
-    const fileStream = fs.createReadStream(localFilePath);
-    fileStream.pipe(res);
+    const cached = cache.get(req.params.filename);
+    if (cached) {
+      console.log('Serving image from cache');
+      res.send(cached);
+    } else {
+      const data = await gridfsLib.getMP3(req.params.filename);
+      res.send(data);
+    }
   } catch (e) {
     return res.json({ msg: 'Error while retrieving audio' });
   }
