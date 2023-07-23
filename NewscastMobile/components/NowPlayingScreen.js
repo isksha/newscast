@@ -6,7 +6,8 @@ import Slider from '@react-native-community/slider'
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-function NowPlayingScreen({ navigation }) {
+function NowPlayingScreen({ navigation, route }) {
+    const { ip, title, imageUrl, audioUrl } = route.params;
     const [currNewsletter, setCurrNewsletter] = useState('Wed, May 31');
 
     const currTranscript = useRef(null);
@@ -64,6 +65,8 @@ function NowPlayingScreen({ navigation }) {
         if (!isSeeking.current) {
             setCurrPos(status.positionMillis || 0);
             console.log(`${isSeeking.current}` + status.positionMillis);
+            setCurrDuration(status.durationMillis);
+            console.log('duration' + status.durationMillis);
         } else {
             console.log('playback update sees isSeeking true?');
         }
@@ -80,7 +83,8 @@ function NowPlayingScreen({ navigation }) {
             if (!currTranscript.current) {
                 await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
                 const { sound, status } = await Audio.Sound.createAsync(
-                    require('../assets/placeholder3.mp3'),
+                    // require('../assets/placeholder3.mp3'),
+                    { uri: `http://${ip}:8080/temp/audio/${audioUrl}` },
                     {},
                     setPositionMillis
                 );
@@ -90,6 +94,7 @@ function NowPlayingScreen({ navigation }) {
                 // currAudioInfo.current = status;
                 // await sound.playAsync();
                 currTranscript.current = sound;
+                // console.log(status);
                 setCurrDuration(status.durationMillis);
             }
         } catch (error) {
@@ -142,7 +147,8 @@ function NowPlayingScreen({ navigation }) {
     const shareFn = async () => {
         try {
             const result = await Share.share({
-                message: `Sharing ${currNewsletter}`,
+                // message: `Sharing ${currNewsletter}`,
+                message: `Sharing ${title}`,
             });
         } catch (error) {
             Alert.alert(error.message);
@@ -181,6 +187,12 @@ function NowPlayingScreen({ navigation }) {
         return null;
     }
 
+    // const { ip, title, imageUrl, audioUrl } = route.params;
+    console.log(ip);
+    console.log(title);
+    console.log(imageUrl);
+    console.log(audioUrl);
+    // const img = `http://${ip}:8080/temp/image/${JSON.stringify(imageUrl)}`;
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.topbar}>
@@ -217,11 +229,16 @@ function NowPlayingScreen({ navigation }) {
                 />
             </View>
             <View style={styles.thumbnail}>
-                <Image source={require('../assets/placeholder.png')} />
+                {/* <Image source={require('../assets/placeholder.png')} /> */}
+                <Image
+                    style={{ width: 334, height: 330, borderRadius: 16 }}
+                    source={{ uri: `http://${ip}:8080/temp/image/${imageUrl}` }} 
+                />
             </View>
             <View style={styles.player}>
                 <View style={styles.playerHeader}>
-                    <Text style={styles.playerText}>{currNewsletter}</Text>
+                    {/* <Text style={styles.playerText}>{currNewsletter}</Text> */}
+                    <Text style={styles.playerText}>{title}</Text>
                     {/* <Text>&#9825;</Text> */}
                     {/* <Text>&#9829;</Text> */}
                     <Ionicons.Button
