@@ -5,9 +5,10 @@ import Slider from '@react-native-community/slider'
 // import { useFonts } from 'expo-font';
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Asset } from 'expo-asset';
 
 function NowPlayingScreen({ navigation, route }) {
-    const { ip, title, imageUrl, audioUrl } = route.params;
+    const { ip, title, imageUrl, audioUrl, localImageUrl, localAudioUrl } = route.params;
     const [currNewsletter, setCurrNewsletter] = useState('Wed, May 31');
 
     const currTranscript = useRef(null);
@@ -80,13 +81,28 @@ function NowPlayingScreen({ navigation, route }) {
 
     const loadTranscript = async () => {
         try {
+            console.log(localImageUrl);
+            console.log(localAudioUrl);
             if (!currTranscript.current) {
                 await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
+                // const source = Asset.fromModule(`http://${ip}:8080/temp/audio/${audioUrl}`);
+                const source = Asset.fromURI(`http://${ip}:8080/temp/audio/${audioUrl}`);
+                // const source = Asset.fromURI(localAudioUrl);
+                // const source = await Asset.loadAsync(`http://${ip}:8080/temp/audio/${audioUrl}`);
+                console.log(source);
+                console.log('type' + source.type);
+                console.log('name' + source.name);
+                // const source = Asset.fromURI(`http://${ip}:8080/temp/audio/${audioUrl}`);
                 const { sound, status } = await Audio.Sound.createAsync(
                     // require('../assets/placeholder3.mp3'),
-                    { uri: `http://${ip}:8080/temp/audio/${audioUrl}` },
+                    // { uri: `http://${ip}:8080/temp/audio/${audioUrl}` },
+                    // {uri: localAudioUrl },
+                    source,
+                    // require(localAudioUrl),
+                    // localAudioUrl,
                     {},
-                    setPositionMillis
+                    setPositionMillis,
+                    true
                 );
                 // console.log('initial sound ' + sound);
                 // console.log('inital pos sound ' + sound.positionMillis);
@@ -232,7 +248,8 @@ function NowPlayingScreen({ navigation, route }) {
                 {/* <Image source={require('../assets/placeholder.png')} /> */}
                 <Image
                     style={{ width: 334, height: 330, borderRadius: 16 }}
-                    source={{ uri: `http://${ip}:8080/temp/image/${imageUrl}` }} 
+                    // source={{ uri: `http://${ip}:8080/temp/image/${imageUrl}` }} 
+                    source={{uri: localImageUrl}}
                 />
             </View>
             <View style={styles.player}>
