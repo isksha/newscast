@@ -58,8 +58,6 @@ async function generateTtsMp3(text) {
     audioConfig: { audioEncoding: 'MP3' },
   };
 
-  console.log('herein');
-
   const [ttsResponse] = await tts.synthesizeSpeech(ttsRequest);
   console.log('4/7 Generated mp3 successfully');
 
