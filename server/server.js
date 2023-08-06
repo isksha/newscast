@@ -121,7 +121,7 @@ webapp.get('/newscasts/:userId', async (req, res) => {
 // get user's transcript by date
 webapp.get(`/newscasts/:userId/:date/${constants.REST_GET_BY_DATE}`, async (req, res) => {
   // curl -i -X GET http://localhost:8080/newscasts/iskander/2023-06-17/0
-  //for windows: Invoke-WebRequest -Method GET -Uri "http://localhost:8080/newscasts/iskander/2023-06-29/0"
+  // for windows: Invoke-WebRequest -Method GET -Uri "http://localhost:8080/newscasts/iskander/2023-06-29/0"
   const ret = await dbLib.getNewscastByUserAndDate(req.params.userId, new Date(req.params.date));
   res.json(ret);
 });
@@ -143,7 +143,7 @@ webapp.delete('/newscasts/:userId/:date', async (req, res) => {
 // add new transcript & update all required state (if doesn't exist yet)
 webapp.post('/newscasts', async (req, res) => {
   // curl -i -X POST -d 'userId=iskander&date=07-02-2023' http://localhost:8080/newscasts
-  //for windows: Invoke-WebRequest -Method POST -Body "userId=iskander&date=07-02-2023" -Uri "http://localhost:8080/newscasts"
+  // for windows: Invoke-WebRequest -Method POST -Body "userId=iskander&date=07-02-2023" -Uri "http://localhost:8080/newscasts"
   console.log('Started generating transcript');
   const exists = await dbLib.getNewscastByUserAndDate(req.body.userId, new Date(req.body.date));
   if (exists) {
@@ -194,7 +194,7 @@ webapp.get('/temp/audio/:filename', async (req, res) => {
     res.setHeader('Content-Type', 'audio/mpeg');
     const cached = cache.get(req.params.filename);
     if (cached) {
-      console.log('Serving image from cache');
+      console.log('Serving audio from cache');
       res.send(cached);
     } else {
       const data = await gridfsLib.getMP3(req.params.filename);
