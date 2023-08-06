@@ -2,6 +2,7 @@ const { exec } = require('child_process');
 const { WordTokenizer, TfIdf } = require('natural');
 const { Configuration, OpenAIApi } = require('openai');
 const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
+const mp3Duration = require('mp3-duration');
 const constants = require('../constants/newscastConstants');
 
 const generateTranscript = async () => new Promise((resolve, reject) => {
@@ -57,9 +58,23 @@ async function generateTtsMp3(text) {
     audioConfig: { audioEncoding: 'MP3' },
   };
 
+  console.log('herein');
+
   const [ttsResponse] = await tts.synthesizeSpeech(ttsRequest);
   console.log('4/7 Generated mp3 successfully');
-  return ttsResponse.audioContent;
+
+  // Calculate audio duration using mp3-duration
+  const durationInMs = await new Promise((resolve, reject) => {
+    mp3Duration(Buffer.from(ttsResponse.audioContent), (err, duration) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(duration * 1000);
+      }
+    });
+  });
+
+  return { audio: ttsResponse.audioContent, duration: durationInMs };
 }
 
 module.exports = {

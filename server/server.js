@@ -207,15 +207,6 @@ webapp.get('/temp/audio/:filename', async (req, res) => {
 
 /* --------------------- Internal helpers ---------------------*/
 
-async function waitForFileExists(filePath, currentTime = 0, timeout = 5000) {
-  if (fs.existsSync(filePath)) return true;
-  if (currentTime === timeout) return false;
-  // wait for 1 second
-  await new Promise((resolve, reject) => setTimeout(() => resolve(true), 1000));
-  // waited for 1 second
-  return waitForFileExists(filePath, currentTime + 1000, timeout);
-}
-
 async function generateNewscastRoutine(userId, date) {
   let newscastStr; let tags; let imageUrl; let mp3File; let gridfsImageId; let gridfsMp3Id; let
     addTranscriptResult;
@@ -225,16 +216,16 @@ async function generateNewscastRoutine(userId, date) {
   try {
     newscastStr = await newscastApi.generateTranscript();
     tags = await newscastApi.generateTags(newscastStr);
-    imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
+    imageUrl = 'dog'; // await newscastApi.convertTagsToImage(tags.join(', '));
     mp3File = await newscastApi.generateTtsMp3(newscastStr);
-    gridfsImageId = await gridfsLib.postJPEG(imageUrl, userId, new Date(date));
+    gridfsImageId = 'dog'; //  await gridfsLib.postJPEG(imageUrl, userId, new Date(date));
   } catch (e) {
     console.log('Error during transcript generation stage'); // not technically just generation phase but if image upload fails nothing needs to be purged
     return;
   }
 
   try {
-    gridfsMp3Id = await gridfsLib.postMP3(mp3File, userId, new Date(date));
+    gridfsMp3Id = await gridfsLib.postMP3(mp3File.audio, userId, new Date(date));
   } catch (e) {
     gridfsLib.deleteJPEG(gridfsImageId);
     console.log('Error during mp3 upload');
@@ -242,7 +233,7 @@ async function generateNewscastRoutine(userId, date) {
   }
 
   try {
-    addTranscriptResult = await dbLib.addNewscast(userId, tags, newscastStr, gridfsImageId, gridfsMp3Id, new Date(date));
+    addTranscriptResult = await dbLib.addNewscast(userId, tags, newscastStr, gridfsImageId, gridfsMp3Id, mp3File.duration, new Date(date));
   } catch (e) {
     gridfsLib.deleteJPEG(gridfsImageId);
     gridfsLib.deleteMP3(gridfsMp3Id);

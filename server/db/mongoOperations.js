@@ -138,7 +138,7 @@ const deleteUser = async (userId) => {
 
 /* --------------------- CRUD for transcripts ---------------------*/
 
-const addNewscast = async (userId, tags, transcript, imageUrl, mp3Url, date) => {
+const addNewscast = async (userId, tags, transcript, imageUrl, mp3Url, mp3Duration, date) => {
   // get the db
   try {
     const db = await getDB(process.env.MONGO_DB_NAME);
@@ -149,6 +149,7 @@ const addNewscast = async (userId, tags, transcript, imageUrl, mp3Url, date) => 
       transcript,
       imageUrl,
       mp3Url,
+      mp3Duration,
       date,
     };
     const result = await db.collection(process.env.MONGO_TRANSCRIPTS_COLLECTION).insertOne(newTranscript);
