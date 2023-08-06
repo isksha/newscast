@@ -216,9 +216,9 @@ async function generateNewscastRoutine(userId, date) {
   try {
     newscastStr = await newscastApi.generateTranscript();
     tags = await newscastApi.generateTags(newscastStr);
-    imageUrl = 'dog'; // await newscastApi.convertTagsToImage(tags.join(', '));
+    imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
     mp3File = await newscastApi.generateTtsMp3(newscastStr);
-    gridfsImageId = 'dog'; //  await gridfsLib.postJPEG(imageUrl, userId, new Date(date));
+    gridfsImageId = await gridfsLib.postJPEG(imageUrl, userId, new Date(date));
   } catch (e) {
     console.log('Error during transcript generation stage'); // not technically just generation phase but if image upload fails nothing needs to be purged
     return;
