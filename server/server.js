@@ -224,11 +224,19 @@ async function generateNewscastRoutine(userId, date) {
 
   try {
     newscastStr = await newscastApi.generateTranscript();
+    if (newscastStr.length === 0) {
+      throw new Error('Error during transcript generation stage: transcript string is empty');
+    }
     tags = await newscastApi.generateTags(newscastStr);
     imageUrl = await newscastApi.convertTagsToImage(tags.join(', '));
     mp3File = await newscastApi.generateTtsMp3(newscastStr);
     gridfsImageId = await gridfsLib.postJPEG(imageUrl, userId, new Date(date));
   } catch (e) {
+    if (e.message === 'Error during transcript generation stage: transcript string is empty') {
+      console.log(e.message);
+      return;
+    }
+
     console.log('Error during transcript generation stage'); // not technically just generation phase but if image upload fails nothing needs to be purged
     return;
   }
