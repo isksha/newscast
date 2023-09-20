@@ -1,7 +1,7 @@
 ## How to use
 First, you need an OpenAI account for a unique API key to plug into the `openai.api_key` field in the `generate_transcript.py` file.
 You'll also need to authenticate the text-to-speech API with a .json key from Google Cloud.
-Then, run the following code in the terminal :
+Then, run the following code in the terminal:
 ```
 python3 generate_transcript.py
 cd newscast
